@@ -499,6 +499,32 @@ function metaHtml(s) {
   return h?`<div class="meta-row">${h}</div>`:"";
 }
 
+// ═══ IMAGE COMPRESSION ═════════════════════════════════════════
+// Compress image to max 800px and ~150KB before sending to AI or saving
+function compressImage(dataUrl, maxPx=800, quality=0.75) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      let w = img.width, h = img.height;
+      if (w > maxPx || h > maxPx) {
+        if (w > h) { h = Math.round(h * maxPx / w); w = maxPx; }
+        else       { w = Math.round(w * maxPx / h); h = maxPx; }
+      }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = () => resolve(dataUrl); // fallback: return original
+    img.src = dataUrl;
+  });
+}
+
+// Compress specifically for AI (smaller, faster)
+function compressForAI(dataUrl) { return compressImage(dataUrl, 1024, 0.80); }
+// Compress for storage (balance quality/size)
+function compressForStorage(dataUrl) { return compressImage(dataUrl, 1200, 0.82); }
+
 // ═══ ANTHROPIC API (via Cloudflare Worker) ═════════════════════
 // Cole aqui a URL do seu Cloudflare Worker após o deploy
 const WORKER_URL = "https://aldeia-wine-proxy.romulopsilva.workers.dev";
@@ -750,7 +776,7 @@ const App = {
     // Wine cards
     const wineCards=ranked.map(w=>{
       const d=w.details||{};
-      const hasDetails=!!d.name;
+      const hasDetails=!!(d.name||d.producer||d.region||d.vintage||d.grape||d.owner||d.notes||d.price||d.alcohol);
       const photoFront=w.photos?.Frente
         ? `<div><p class="text-muted text-sm" style="margin-bottom:8px">Frente</p><img src="${w.photos.Frente}" class="photo-thumb"><button class="btn btn-ghost btn-sm mt8" onclick="App.triggerPhoto('${w.id}','Frente',true)">Trocar</button></div>`
         : `<div><p class="text-muted text-sm" style="margin-bottom:8px">Frente</p><label class="photo-zone" onclick="App.triggerPhoto('${w.id}','Frente',true)"><span style="font-size:28px;color:var(--gold)">📷</span><p class="text-muted text-sm mt8">Foto da Frente</p><p style="font-size:10px;color:var(--gold);margin-top:6px;font-family:'Cinzel',serif;letter-spacing:1px">IA identifica o vinho</p></label></div>`;
@@ -761,11 +787,11 @@ const App = {
       return `
         <div class="wine-card">
           <div class="wine-card-header">
-            <div><span class="tag">Vinho ${w.label}</span><span style="font-family:'Cormorant Garamond',serif;font-size:18px;margin-left:10px">${hasDetails?d.name:"Sem identificação"}</span></div>
-            <button class="btn btn-ghost btn-sm" style="width:auto" onclick="App.openWineModal('${w.id}')">${hasDetails?"Editar":"Identificar"}</button>
+            <div><span class="tag">Vinho ${w.label}</span><span style="font-family:'Cormorant Garamond',serif;font-size:18px;margin-left:10px">${d.name||(hasDetails?"Informações parciais":"Sem identificação")}</span></div>
+            <button class="btn btn-ghost btn-sm" style="width:auto" onclick="App.openWineModal('${w.id}')">${hasDetails?"✏️ Editar":"🔍 Identificar"}</button>
           </div>
           ${hasDetails?`
-          <div class="wine-card-body">
+          <div class="wine-card-body" style="border-bottom:1px solid var(--border)">
             <div class="grid2" style="gap:10px">
               ${d.owner?`<div><p class="label">Trouxe</p><p style="font-family:'Cormorant Garamond',serif;font-size:15px">👤 ${d.owner}</p></div>`:""}
               ${d.producer?`<div><p class="label">Produtor</p><p style="font-family:'Cormorant Garamond',serif;font-size:15px">${d.producer}</p></div>`:""}
@@ -814,17 +840,19 @@ const App = {
     inp.onchange=async e=>{
       const file=e.target.files[0]; if(!file)return;
       document.body.removeChild(inp);
+      showToast("📷 Processando foto…");
       const reader=new FileReader();
       reader.onload=async ev=>{
         const id=parseInt(wineId);
-        const b64=ev.target.result;
-        session.wines=session.wines.map(w=>w.id!==id?w:{...w,photos:{...(w.photos||{}),[side]:b64}});
+        // Compress before storing to avoid Firebase size limits
+        const compressed = await compressForStorage(ev.target.result);
+        session.wines=session.wines.map(w=>w.id!==id?w:{...w,photos:{...(w.photos||{}),[side]:compressed}});
         await saveSession(session);
         App.renderTabResults();
         // Run AI identification on front photo
         if(runAI && side==="Frente") {
           showToast("🔍 Analisando rótulo com IA…");
-          await App.identifyWineFromPhoto(id, b64);
+          await App.identifyWineFromPhoto(id, compressed);
         } else {
           showToast("Foto adicionada!");
         }
@@ -836,8 +864,10 @@ const App = {
 
   async identifyWineFromPhoto(wineId, imageDataUrl) {
     try {
-      const base64 = imageDataUrl.split(",")[1];
-      const mediaType = imageDataUrl.split(";")[0].split(":")[1];
+      // Compress specifically for AI (faster, cheaper)
+      const aiImage = await compressForAI(imageDataUrl);
+      const base64 = aiImage.split(",")[1];
+      const mediaType = aiImage.split(";")[0].split(":")[1];
 
       const text = await callClaude([{
         role:"user",
@@ -921,7 +951,7 @@ Se algum campo não for visível no rótulo, use string vazia "". Responda APENA
 
     // If there's a front photo and the wine hasn't been identified yet, run AI now
     const hasFrontPhoto = !!wine.photos?.Frente;
-    const alreadyIdentified = !!d.name;
+    const alreadyIdentified = !!(d.name||d.producer||d.region||d.vintage);
 
     if (hasFrontPhoto && !alreadyIdentified) {
       // Show loading state inside modal
@@ -930,8 +960,9 @@ Se algum campo não for visível no rótulo, use string vazia "". Responda APENA
       status.style.display="block";
 
       try {
-        const b64=wine.photos.Frente.split(",")[1];
-        const mediaType=wine.photos.Frente.split(";")[0].split(":")[1];
+        const aiImg = await compressForAI(wine.photos.Frente);
+        const b64=aiImg.split(",")[1];
+        const mediaType=aiImg.split(";")[0].split(":")[1];
 
         const text = await callClaude([{
           role:"user",
@@ -1020,6 +1051,7 @@ Campos não visíveis = string vazia. Responda APENAS o JSON.` }
     const btn=document.getElementById("btn-report");
     if(btn){btn.textContent="⏳ Gerando relatório…";btn.disabled=true;}
 
+    // Can always generate — uses whatever info is available
     try {
       // Build data context for AI
       const ranked=[...session.wines].sort((a,b)=>b.score-a.score);
@@ -1073,7 +1105,9 @@ Seja específico, cite os vinhos e participantes pelo nome. Tom refinado e apaix
       session.report=reportText;
       await saveSession(session);
     } catch(e) {
-      showToast("Erro ao gerar relatório. Tente novamente.");
+      const msg = e.message || "Erro desconhecido";
+      showToast("Erro: " + msg.slice(0,60));
+      console.error("Report error:", e);
       if(btn){btn.textContent="📊 Gerar Relatório & Encerrar";btn.disabled=false;}
     }
   },
