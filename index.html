@@ -9,10 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
 
-<!-- Firebase -->
 <script type="module">
 (async () => {
-  /* ── Cole aqui o seu firebaseConfig ── */
   const firebaseConfig = {
     apiKey: "AIzaSyB2rZimIUvgHHeCvt-no8BPHn1PPBCFzGI",
     authDomain: "aldeia-wine.firebaseapp.com",
@@ -22,277 +20,188 @@
     messagingSenderId: "967767335111",
     appId: "1:967767335111:web:6a784ca8dca3671e991ee2"
   };
-  /* ───────────────────────────────────── */
-
-  if (firebaseConfig.apiKey === "COLE_AQUI") {
-    window._firebase = { ok: false };
-    return;
-  }
+  if (firebaseConfig.apiKey === "COLE_AQUI") { window._firebase = { ok: false }; return; }
   try {
     const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
     const { getDatabase, ref, set, get, onValue, remove } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
     const app = initializeApp(firebaseConfig);
     const db  = getDatabase(app);
     window._firebase = { db, ref, set, get, onValue, remove, ok: true };
-  } catch(e) {
-    window._firebase = { ok: false };
-  }
+  } catch(e) { window._firebase = { ok: false }; }
 })();
 </script>
 
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+:root {
+  --wine:#6b1a2a; --wine2:#8b2337; --gold:#c9a84c; --gold2:#e8cc7a;
+  --cream:#f5ede0; --dark:#0d0508; --dark2:#1a0c10; --dark3:#261318;
+  --muted:#7a5c64; --border:rgba(201,168,76,0.25);
+  --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+html,body { min-height:100%; background:var(--dark); font-family:'Lato',sans-serif; color:var(--cream); overflow-x:hidden; -webkit-tap-highlight-color:transparent; -webkit-font-smoothing:antialiased; }
+body::before { content:''; position:fixed; inset:0; background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(107,26,42,0.18) 0%,transparent 60%),radial-gradient(ellipse 60% 80% at 80% 90%,rgba(107,26,42,0.12) 0%,transparent 60%); pointer-events:none; z-index:0; }
+#app { position:relative; z-index:1; min-height:100vh; padding-bottom:var(--safe-bottom); }
 
-  :root {
-    --wine:   #6b1a2a;
-    --wine2:  #8b2337;
-    --gold:   #c9a84c;
-    --gold2:  #e8cc7a;
-    --cream:  #f5ede0;
-    --dark:   #0d0508;
-    --dark2:  #1a0c10;
-    --dark3:  #261318;
-    --muted:  #7a5c64;
-    --border: rgba(201,168,76,0.25);
-    --safe-top: env(safe-area-inset-top, 0px);
-    --safe-bottom: env(safe-area-inset-bottom, 0px);
-  }
+.header { text-align:center; padding:calc(var(--safe-top) + 40px) 20px 28px; border-bottom:1px solid var(--border); background:linear-gradient(180deg,rgba(107,26,42,0.1) 0%,transparent 100%); }
+.header-ornament { color:var(--gold); font-size:11px; letter-spacing:5px; text-transform:uppercase; font-family:'Cinzel',serif; opacity:0.7; margin-bottom:10px; }
+.header h1 { font-family:'Cinzel',serif; font-size:clamp(22px,6vw,42px); font-weight:600; color:var(--gold2); letter-spacing:2px; line-height:1.15; }
+.header h1 em { font-style:italic; font-family:'Cormorant Garamond',serif; font-weight:300; font-size:1.15em; color:var(--cream); }
+.header-sub { margin-top:8px; font-family:'Cormorant Garamond',serif; font-size:15px; color:var(--muted); letter-spacing:2px; font-style:italic; }
 
-  html, body {
-    min-height: 100%;
-    background: var(--dark);
-    font-family: 'Lato', sans-serif;
-    color: var(--cream);
-    overflow-x: hidden;
-    -webkit-tap-highlight-color: transparent;
-    -webkit-font-smoothing: antialiased;
-  }
+.page { max-width:520px; margin:0 auto; padding:24px 16px 40px; display:none; }
+.page.active { display:block; }
 
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(107,26,42,0.18) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 80% at 80% 90%, rgba(107,26,42,0.12) 0%, transparent 60%);
-    pointer-events: none; z-index: 0;
-  }
+.card { background:linear-gradient(135deg,rgba(38,19,24,0.92),rgba(26,12,16,0.96)); border:1px solid var(--border); border-radius:14px; padding:24px; margin-bottom:16px; }
 
-  #app { position: relative; z-index: 1; min-height: 100vh; padding-bottom: var(--safe-bottom); }
+.section-label { font-family:'Cinzel',serif; font-size:10px; letter-spacing:4px; text-transform:uppercase; color:var(--gold); opacity:0.8; margin-bottom:18px; display:flex; align-items:center; gap:10px; }
+.section-label::after { content:''; flex:1; height:1px; background:var(--border); }
 
-  /* ── Header ── */
-  .header {
-    text-align: center;
-    padding: calc(var(--safe-top) + 40px) 20px 28px;
-    border-bottom: 1px solid var(--border);
-    background: linear-gradient(180deg, rgba(107,26,42,0.1) 0%, transparent 100%);
-  }
-  .header-ornament { color: var(--gold); font-size: 11px; letter-spacing: 5px; text-transform: uppercase; font-family: 'Cinzel', serif; opacity: 0.7; margin-bottom: 10px; }
-  .header h1 { font-family: 'Cinzel', serif; font-size: clamp(22px, 6vw, 42px); font-weight: 600; color: var(--gold2); letter-spacing: 2px; line-height: 1.15; }
-  .header h1 em { font-style: italic; font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: 1.15em; color: var(--cream); }
-  .header-sub { margin-top: 8px; font-family: 'Cormorant Garamond', serif; font-size: 15px; color: var(--muted); letter-spacing: 2px; font-style: italic; }
+.btn { font-family:'Cinzel',serif; font-size:11px; letter-spacing:2.5px; text-transform:uppercase; border:none; cursor:pointer; border-radius:8px; padding:15px 20px; transition:all .22s; display:flex; align-items:center; justify-content:center; gap:8px; width:100%; touch-action:manipulation; -webkit-appearance:none; }
+.btn-primary { background:linear-gradient(135deg,var(--wine),var(--wine2)); color:var(--gold2); }
+.btn-primary:active { filter:brightness(1.15); transform:scale(0.98); }
+.btn-ghost { background:transparent; border:1px solid var(--border); color:var(--gold); }
+.btn-ghost:active { background:rgba(201,168,76,0.08); }
+.btn-gold { background:linear-gradient(135deg,#b8932a,var(--gold)); color:var(--dark); font-weight:600; }
+.btn-gold:active { filter:brightness(1.1); transform:scale(0.98); }
+.btn-danger { background:linear-gradient(135deg,#7a1a1a,#9b2222); color:#ffcccc; border:1px solid rgba(200,80,80,0.4); }
+.btn-danger:active { filter:brightness(1.1); }
+.btn-sm { padding:10px 16px; font-size:10px; }
+.btn:disabled { opacity:0.38; pointer-events:none; }
+.btn+.btn { margin-top:10px; }
 
-  /* ── Page ── */
-  .page { max-width: 520px; margin: 0 auto; padding: 24px 16px 40px; display: none; }
-  .page.active { display: block; }
+.input { background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:8px; color:var(--cream); font-family:'Lato',sans-serif; font-size:16px; padding:13px 15px; width:100%; transition:border-color .2s; outline:none; -webkit-appearance:none; appearance:none; }
+.input:focus { border-color:rgba(201,168,76,0.65); background:rgba(255,255,255,0.07); }
+.input::placeholder { color:var(--muted); }
+.input[type="date"] { color-scheme:dark; }
+select.input { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23c9a84c' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:36px; }
+.label { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--gold); opacity:0.75; margin-bottom:7px; display:block; font-family:'Cinzel',serif; }
 
-  /* ── Card ── */
-  .card {
-    background: linear-gradient(135deg, rgba(38,19,24,0.92), rgba(26,12,16,0.96));
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 24px;
-    margin-bottom: 16px;
-  }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+@media(max-width:360px){ .grid2 { grid-template-columns:1fr; } }
+.field { margin-bottom:16px; }
+.field:last-child { margin-bottom:0; }
+.divider { height:1px; background:var(--border); margin:20px 0; }
 
-  .section-label {
-    font-family: 'Cinzel', serif;
-    font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
-    color: var(--gold); opacity: 0.8; margin-bottom: 18px;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.score-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:10px; margin-top:8px; }
+.score-item { background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:8px; padding:10px; text-align:center; }
+.score-item .label { margin-bottom:4px; }
 
-  /* ── Buttons ── */
-  .btn {
-    font-family: 'Cinzel', serif;
-    font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase;
-    border: none; cursor: pointer; border-radius: 8px;
-    padding: 15px 20px; transition: all .22s;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    width: 100%; touch-action: manipulation;
-    -webkit-appearance: none;
-  }
-  .btn-primary { background: linear-gradient(135deg, var(--wine), var(--wine2)); color: var(--gold2); }
-  .btn-primary:active { filter: brightness(1.15); transform: scale(0.98); }
-  .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--gold); }
-  .btn-ghost:active { background: rgba(201,168,76,0.08); }
-  .btn-gold { background: linear-gradient(135deg, #b8932a, var(--gold)); color: var(--dark); font-weight: 600; }
-  .btn-gold:active { filter: brightness(1.1); transform: scale(0.98); }
-  .btn-sm { padding: 10px 16px; font-size: 10px; }
-  .btn:disabled { opacity: 0.38; pointer-events: none; }
-  .btn + .btn { margin-top: 10px; }
+.wine-row { display:flex; align-items:center; gap:14px; background:rgba(255,255,255,0.03); border:1px solid var(--gold); border-radius:10px; padding:14px 16px; margin-bottom:10px; user-select:none; cursor:grab; transition:background .18s,box-shadow .18s; touch-action:none; }
+.wine-row:active,.wine-row.dragging { background:rgba(201,168,76,0.09); box-shadow:0 6px 24px rgba(0,0,0,0.4); }
+.rank-circle { width:38px; height:38px; border-radius:50%; flex-shrink:0; background:linear-gradient(135deg,var(--wine),var(--wine2)); border:1px solid var(--gold); display:flex; align-items:center; justify-content:center; font-family:'Cinzel',serif; font-size:14px; font-weight:600; color:var(--gold2); }
+.wine-name { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:600; flex:1; }
+.wine-pts { font-family:'Cinzel',serif; font-size:12px; color:var(--gold2); white-space:nowrap; }
+.wine-arrows { display:flex; flex-direction:column; gap:3px; }
+.arrow-btn { background:rgba(255,255,255,0.06); border:1px solid var(--border); color:var(--gold); border-radius:5px; width:32px; height:26px; cursor:pointer; font-size:11px; display:flex; align-items:center; justify-content:center; touch-action:manipulation; transition:background .15s; }
+.arrow-btn:active { background:rgba(201,168,76,0.15); }
+.arrow-btn:disabled { opacity:0.25; pointer-events:none; }
 
-  /* ── Inputs ── */
-  .input {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid var(--border); border-radius: 8px;
-    color: var(--cream); font-family: 'Lato', sans-serif; font-size: 16px;
-    padding: 13px 15px; width: 100%; transition: border-color .2s; outline: none;
-    -webkit-appearance: none; appearance: none;
-  }
-  .input:focus { border-color: rgba(201,168,76,0.65); background: rgba(255,255,255,0.07); }
-  .input::placeholder { color: var(--muted); }
-  .input[type="date"] { color-scheme: dark; }
-  .label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); opacity: 0.75; margin-bottom: 7px; display: block; font-family: 'Cinzel', serif; }
+.name-btn { display:flex; align-items:center; gap:14px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:10px; cursor:pointer; transition:all .18s; touch-action:manipulation; -webkit-appearance:none; width:100%; text-align:left; }
+.name-btn.selected { border-color:var(--gold); background:rgba(201,168,76,0.08); }
+.name-circle { width:36px; height:36px; border-radius:50%; flex-shrink:0; background:rgba(255,255,255,0.06); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:16px; color:var(--muted); transition:all .18s; }
+.name-btn.selected .name-circle { background:linear-gradient(135deg,var(--wine),var(--wine2)); border-color:var(--gold); color:var(--gold2); font-size:13px; }
+.name-text { font-family:'Cormorant Garamond',serif; font-size:20px; color:var(--cream); }
 
-  /* ── Grid ── */
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  @media (max-width: 360px) { .grid2 { grid-template-columns: 1fr; } }
+.participant-row { display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); border:1px dashed var(--border); border-radius:10px; padding:14px 16px; margin-bottom:10px; gap:10px; }
+.p-name { font-family:'Cormorant Garamond',serif; font-size:18px; }
+.voted-badge { color:#81c784; font-family:'Cinzel',serif; font-size:10px; letter-spacing:2px; white-space:nowrap; }
+.waiting-badge { color:var(--muted); font-size:12px; }
 
-  /* ── Field group ── */
-  .field { margin-bottom: 16px; }
-  .field:last-child { margin-bottom: 0; }
+.result-row { display:flex; align-items:center; gap:14px; padding:14px 16px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:10px; margin-bottom:10px; }
+.result-row.gold { border-color:var(--gold); background:rgba(201,168,76,0.08); }
+.medal { font-size:22px; width:34px; text-align:center; flex-shrink:0; }
+.result-name { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:600; flex:1; }
+.result-sub { font-size:11px; color:var(--muted); letter-spacing:1px; }
+.result-pts { font-family:'Cinzel',serif; font-size:22px; font-weight:600; color:var(--gold2); white-space:nowrap; }
 
-  /* ── Divider ── */
-  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+.vote-table { width:100%; border-collapse:collapse; font-size:13px; }
+.vote-table th { font-family:'Cinzel',serif; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--gold); opacity:0.8; padding:8px 10px; border-bottom:1px solid var(--border); text-align:center; }
+.vote-table th:first-child { text-align:left; }
+.vote-table td { padding:10px; border-bottom:1px solid rgba(201,168,76,0.08); text-align:center; color:var(--cream); font-family:'Cinzel',serif; font-size:12px; }
+.vote-table td:first-child { text-align:left; font-family:'Cormorant Garamond',serif; font-size:15px; }
+.vote-table tr:last-child td { border-bottom:none; }
+.vote-table .total-row td { color:var(--gold2); font-weight:600; border-top:1px solid var(--border); }
+.pts-cell { color:var(--gold2); }
+.best-cell { color:#81c784; font-weight:600; }
 
-  /* ── Wine voting item ── */
-  .wine-row {
-    display: flex; align-items: center; gap: 14px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid var(--gold);
-    border-radius: 10px; padding: 14px 16px;
-    margin-bottom: 10px; user-select: none; cursor: grab;
-    transition: background .18s, box-shadow .18s;
-    touch-action: none;
-  }
-  .wine-row:active, .wine-row.dragging { background: rgba(201,168,76,0.09); box-shadow: 0 6px 24px rgba(0,0,0,0.4); }
-  .rank-circle {
-    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
-    background: linear-gradient(135deg, var(--wine), var(--wine2));
-    border: 1px solid var(--gold);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Cinzel', serif; font-size: 14px; font-weight: 600; color: var(--gold2);
-  }
-  .wine-name { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; flex: 1; }
-  .wine-pts { font-family: 'Cinzel', serif; font-size: 12px; color: var(--gold2); white-space: nowrap; }
-  .wine-arrows { display: flex; flex-direction: column; gap: 3px; }
-  .arrow-btn {
-    background: rgba(255,255,255,0.06); border: 1px solid var(--border);
-    color: var(--gold); border-radius: 5px; width: 32px; height: 26px;
-    cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center;
-    touch-action: manipulation; transition: background .15s;
-  }
-  .arrow-btn:active { background: rgba(201,168,76,0.15); }
-  .arrow-btn:disabled { opacity: 0.25; pointer-events: none; }
+.meta-row { display:flex; flex-wrap:wrap; gap:6px 16px; margin-top:8px; }
+.meta-tag { font-size:12px; color:var(--muted); }
+.progress-wrap { height:4px; background:rgba(255,255,255,0.06); border-radius:2px; overflow:hidden; margin-top:10px; }
+.progress-fill { height:100%; background:linear-gradient(90deg,var(--wine),var(--gold)); border-radius:2px; transition:width .5s; }
 
-  /* ── Name selector ── */
-  .name-btn {
-    display: flex; align-items: center; gap: 14px;
-    background: rgba(255,255,255,0.03); border: 1px solid var(--border);
-    border-radius: 10px; padding: 16px; margin-bottom: 10px;
-    cursor: pointer; transition: all .18s; touch-action: manipulation;
-    -webkit-appearance: none; width: 100%; text-align: left;
-  }
-  .name-btn.selected { border-color: var(--gold); background: rgba(201,168,76,0.08); }
-  .name-btn:active { background: rgba(201,168,76,0.06); }
-  .name-circle {
-    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
-    background: rgba(255,255,255,0.06); border: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px; color: var(--muted); transition: all .18s;
-  }
-  .name-btn.selected .name-circle { background: linear-gradient(135deg, var(--wine), var(--wine2)); border-color: var(--gold); color: var(--gold2); font-size: 13px; }
-  .name-text { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--cream); }
+.tabs { display:flex; gap:4px; background:rgba(255,255,255,0.04); border-radius:10px; padding:4px; margin-bottom:20px; }
+.tab { flex:1; padding:11px 4px; text-align:center; font-family:'Cinzel',serif; font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); cursor:pointer; border-radius:8px; transition:all .2s; border:none; background:transparent; touch-action:manipulation; }
+.tab.active { background:linear-gradient(135deg,var(--wine),var(--wine2)); color:var(--gold2); }
 
-  /* ── Token / participant row ── */
-  .participant-row {
-    display: flex; align-items: center; justify-content: space-between;
-    background: rgba(255,255,255,0.03); border: 1px dashed var(--border);
-    border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; gap: 10px;
-  }
-  .p-name { font-family: 'Cormorant Garamond', serif; font-size: 18px; }
-  .voted-badge { color: #81c784; font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 2px; white-space: nowrap; }
-  .waiting-badge { color: var(--muted); font-size: 12px; }
+.toast { position:fixed; bottom:calc(24px + var(--safe-bottom)); left:50%; transform:translateX(-50%); background:linear-gradient(135deg,var(--wine),var(--wine2)); color:var(--gold2); font-family:'Cinzel',serif; font-size:11px; letter-spacing:2px; padding:13px 24px; border-radius:30px; border:1px solid var(--gold); box-shadow:0 6px 24px rgba(107,26,42,0.6); z-index:9999; white-space:nowrap; animation:fadeUp .28s ease; }
+@keyframes fadeUp { from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)} }
 
-  /* ── Result row ── */
-  .result-row {
-    display: flex; align-items: center; gap: 14px;
-    padding: 14px 16px; background: rgba(255,255,255,0.03);
-    border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px;
-  }
-  .result-row.gold { border-color: var(--gold); background: rgba(201,168,76,0.08); }
-  .medal { font-size: 22px; width: 34px; text-align: center; flex-shrink: 0; }
-  .result-name { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; flex: 1; }
-  .result-sub { font-size: 11px; color: var(--muted); letter-spacing: 1px; }
-  .result-pts { font-family: 'Cinzel', serif; font-size: 22px; font-weight: 600; color: var(--gold2); white-space: nowrap; }
+.modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.72); z-index:200; display:none; align-items:center; justify-content:center; padding:20px; }
+.modal-bg.open { display:flex; }
+.modal { background:var(--dark3); border:1px solid var(--border); border-radius:14px; padding:28px 24px; max-width:460px; width:100%; max-height:90vh; overflow-y:auto; }
 
-  /* ── Meta tags ── */
-  .meta-row { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; }
-  .meta-tag { font-size: 12px; color: var(--muted); }
+.pin-dots { display:flex; justify-content:center; gap:12px; margin:20px 0; }
+.pin-dot { width:14px; height:14px; border-radius:50%; border:2px solid var(--border); transition:all .2s; }
+.pin-dot.filled { background:var(--gold); border-color:var(--gold); }
+.pin-pad { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; max-width:240px; margin:0 auto; }
+.pin-key { background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:10px; padding:16px; font-family:'Cinzel',serif; font-size:18px; color:var(--cream); cursor:pointer; text-align:center; touch-action:manipulation; transition:all .15s; }
+.pin-key:active { background:rgba(201,168,76,0.15); border-color:var(--gold); }
 
-  /* ── Progress ── */
-  .progress-wrap { height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; margin-top: 10px; }
-  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--wine), var(--gold)); border-radius: 2px; transition: width .5s; }
+.photo-zone { border:2px dashed var(--border); border-radius:10px; padding:24px 16px; text-align:center; cursor:pointer; transition:all .2s; display:block; }
+.photo-zone:active { border-color:var(--gold); background:rgba(201,168,76,0.04); }
+.photo-thumb { width:100%; max-height:160px; object-fit:cover; border-radius:8px; border:1px solid var(--border); display:block; }
 
-  /* ── Tab bar ── */
-  .tabs { display: flex; gap: 4px; background: rgba(255,255,255,0.04); border-radius: 10px; padding: 4px; margin-bottom: 20px; }
-  .tab { flex: 1; padding: 11px 6px; text-align: center; font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); cursor: pointer; border-radius: 8px; transition: all .2s; border: none; background: transparent; touch-action: manipulation; }
-  .tab.active { background: linear-gradient(135deg, var(--wine), var(--wine2)); color: var(--gold2); }
+.wine-card { background:linear-gradient(135deg,rgba(38,19,24,0.95),rgba(26,12,16,0.98)); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:16px; }
+.wine-card-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+.wine-card-body { padding:16px 20px; border-bottom:1px solid var(--border); }
+.wine-card-photos { padding:16px 20px; border-bottom:1px solid var(--border); }
+.wine-card-ai { padding:16px 20px; }
+.tag { display:inline-block; background:rgba(201,168,76,0.12); border:1px solid rgba(201,168,76,0.3); color:var(--gold2); font-size:10px; letter-spacing:2px; text-transform:uppercase; font-family:'Cinzel',serif; padding:3px 10px; border-radius:20px; }
 
-  /* ── Toast ── */
-  .toast {
-    position: fixed; bottom: calc(24px + var(--safe-bottom)); left: 50%; transform: translateX(-50%);
-    background: linear-gradient(135deg, var(--wine), var(--wine2));
-    color: var(--gold2); font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 2px;
-    padding: 13px 24px; border-radius: 30px; border: 1px solid var(--gold);
-    box-shadow: 0 6px 24px rgba(107,26,42,0.6); z-index: 9999; white-space: nowrap;
-    animation: fadeUp .28s ease;
-  }
-  @keyframes fadeUp { from { opacity:0; transform:translateX(-50%) translateY(10px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+/* AI scanning overlay */
+.scan-overlay { position:relative; }
+.scan-overlay::after { content:'🔍 Analisando rótulo…'; position:absolute; inset:0; background:rgba(13,5,8,0.85); display:flex; align-items:center; justify-content:center; font-family:'Cinzel',serif; font-size:11px; letter-spacing:2px; color:var(--gold); border-radius:8px; }
 
-  /* ── Modal ── */
-  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.72); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; }
-  .modal-bg.open { display: flex; }
-  .modal { background: var(--dark3); border: 1px solid var(--border); border-radius: 14px; padding: 28px 24px; max-width: 460px; width: 100%; max-height: 90vh; overflow-y: auto; }
+.ai-info-box { background:rgba(201,168,76,0.05); border:1px solid rgba(201,168,76,0.2); border-radius:10px; padding:16px; }
+.ai-info-box p { font-size:13px; line-height:1.8; color:var(--cream); }
 
-  /* ── Photo ── */
-  .photo-zone {
-    border: 2px dashed var(--border); border-radius: 10px;
-    padding: 24px 16px; text-align: center; cursor: pointer; transition: all .2s;
-    display: block;
-  }
-  .photo-zone:active { border-color: var(--gold); background: rgba(201,168,76,0.04); }
-  .photo-thumb { width: 100%; max-height: 160px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); display: block; }
+/* Report overlay */
+.report-overlay { position:fixed; inset:0; background:var(--dark); z-index:500; overflow-y:auto; padding:32px 20px 60px; }
+.report-close { position:fixed; top:calc(var(--safe-top) + 16px); right:16px; background:var(--dark3); border:1px solid var(--border); color:var(--gold); border-radius:8px; padding:10px 16px; font-family:'Cinzel',serif; font-size:10px; letter-spacing:2px; cursor:pointer; z-index:501; }
+.report-content { max-width:640px; margin:0 auto; }
+.report-content h1 { font-family:'Cinzel',serif; font-size:clamp(20px,5vw,32px); color:var(--gold2); letter-spacing:2px; margin-bottom:4px; }
+.report-content h2 { font-family:'Cinzel',serif; font-size:14px; letter-spacing:4px; color:var(--gold); opacity:0.8; margin:28px 0 14px; text-transform:uppercase; padding-bottom:8px; border-bottom:1px solid var(--border); }
+.report-content h3 { font-family:'Cormorant Garamond',serif; font-size:20px; color:var(--gold2); margin-bottom:8px; }
+.report-content p { font-size:14px; line-height:1.8; color:var(--cream); margin-bottom:10px; }
+.report-content .report-meta { display:flex; flex-wrap:wrap; gap:6px 20px; margin-bottom:20px; }
+.report-content .report-meta span { font-size:12px; color:var(--muted); }
+.report-section { background:linear-gradient(135deg,rgba(38,19,24,0.8),rgba(26,12,16,0.9)); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:16px; }
+.report-wine-header { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+.report-medal { font-size:28px; }
+.report-photo-row { display:flex; gap:10px; margin-bottom:14px; }
+.report-photo-row img { flex:1; max-height:120px; object-fit:cover; border-radius:8px; border:1px solid var(--border); }
+.report-print-btn { background:linear-gradient(135deg,#b8932a,var(--gold)); color:var(--dark); font-family:'Cinzel',serif; font-size:11px; letter-spacing:2px; border:none; border-radius:8px; padding:14px 24px; cursor:pointer; width:100%; margin-top:12px; }
 
-  /* ── Wine detail card ── */
-  .wine-card { background: linear-gradient(135deg, rgba(38,19,24,0.95), rgba(26,12,16,0.98)); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
-  .wine-card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
-  .wine-card-body { padding: 16px 20px; border-bottom: 1px solid var(--border); }
-  .wine-card-photos { padding: 16px 20px; }
-  .tag { display: inline-block; background: rgba(201,168,76,0.12); border: 1px solid rgba(201,168,76,0.3); color: var(--gold2); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; font-family: 'Cinzel', serif; padding: 3px 10px; border-radius: 20px; }
+.text-muted { color:var(--muted); font-size:13px; }
+.text-sm { font-size:12px; }
+.mt8 { margin-top:8px; }
+.mt12 { margin-top:12px; }
+.mt16 { margin-top:16px; }
+.gap-voted { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.voted-pill { background:rgba(76,175,80,0.12); border:1px solid rgba(76,175,80,0.3); color:#81c784; font-size:11px; font-family:'Cinzel',serif; letter-spacing:1px; padding:4px 12px; border-radius:20px; }
+.loading-screen { display:flex; align-items:center; justify-content:center; min-height:60vh; }
+.loading-text { font-family:'Cinzel',serif; color:var(--gold); letter-spacing:4px; font-size:12px; opacity:0.7; }
+.error-msg { color:#e57373; font-size:12px; margin-top:8px; display:none; }
 
-  /* ── Setup Firebase notice ── */
-  .firebase-notice { background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.3); border-radius: 10px; padding: 16px; margin-bottom: 20px; font-size: 13px; line-height: 1.7; color: var(--cream); }
-  .firebase-notice strong { color: var(--gold2); }
-  .firebase-notice a { color: var(--gold); }
-
-  /* ── Util ── */
-  .text-muted { color: var(--muted); font-size: 13px; }
-  .text-sm { font-size: 12px; }
-  .mt8 { margin-top: 8px; }
-  .mt12 { margin-top: 12px; }
-  .mt16 { margin-top: 16px; }
-  .flex-row { display: flex; align-items: center; gap: 12px; }
-  .gap-voted { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-  .voted-pill { background: rgba(76,175,80,0.12); border: 1px solid rgba(76,175,80,0.3); color: #81c784; font-size: 11px; font-family: 'Cinzel', serif; letter-spacing: 1px; padding: 4px 12px; border-radius: 20px; }
-
-  .loading-screen { display: flex; align-items: center; justify-content: center; min-height: 60vh; }
-  .loading-text { font-family: 'Cinzel', serif; color: var(--gold); letter-spacing: 4px; font-size: 12px; opacity: 0.7; }
+@media print {
+  .report-close, .report-print-btn { display:none !important; }
+  .report-overlay { position:static; }
+  body > #app { display:none; }
+}
 </style>
 </head>
 <body>
-
 <div id="app">
   <div class="header">
     <div class="header-ornament">Confraria ✦ Aldeia Wine Group</div>
@@ -300,73 +209,92 @@
     <div class="header-sub">Sistema de Votação · Degustação Às Cegas</div>
   </div>
 
-  <!-- Loading -->
   <div id="pg-loading" class="page active">
     <div class="loading-screen"><p class="loading-text">Carregando…</p></div>
   </div>
 
-  <!-- Home (escolha de papel) -->
   <div id="pg-home" class="page">
     <div class="card" id="home-session-info"></div>
-    <button class="btn btn-primary" onclick="App.goAdmin()">🍷 Sou o Organizador</button>
+    <button class="btn btn-primary" onclick="App.promptAdminPin()">🍷 Sou o Organizador</button>
     <button class="btn btn-ghost mt8" onclick="App.goGuest()">👤 Sou Participante — Quero Votar</button>
   </div>
 
-  <!-- Setup (sem sessão) -->
   <div id="pg-setup" class="page">
     <div class="card">
       <div class="section-label">Nova Sessão</div>
-
-      <div id="firebase-warn" class="firebase-notice" style="display:none">
-        ⚠️ <strong>Firebase não configurado.</strong> Os votos só ficam salvos neste dispositivo.<br>
-        Para sincronizar entre celulares, configure o Firebase gratuito.
-        <a href="#" onclick="App.showFirebaseGuide(); return false;">Ver instruções →</a>
-      </div>
-
       <div class="grid2">
-        <div class="field">
-          <label class="label">Data</label>
-          <input class="input" type="date" id="s-date">
-        </div>
-        <div class="field">
-          <label class="label">Anfitrião</label>
-          <input class="input" id="s-host" placeholder="Nome do anfitrião">
-        </div>
+        <div class="field"><label class="label">Data</label><input class="input" type="date" id="s-date"></div>
+        <div class="field"><label class="label">Anfitrião</label><input class="input" id="s-host" placeholder="Nome do anfitrião"></div>
       </div>
       <div class="grid2">
-        <div class="field">
-          <label class="label">Tema</label>
-          <input class="input" id="s-theme" placeholder="Ex: Douro Superior">
-        </div>
-        <div class="field">
-          <label class="label">Prato Principal</label>
-          <input class="input" id="s-dish" placeholder="Ex: Cordeiro assado">
-        </div>
+        <div class="field"><label class="label">Tema</label><input class="input" id="s-theme" placeholder="Ex: Douro Superior"></div>
+        <div class="field"><label class="label">Prato Principal</label><input class="input" id="s-dish" placeholder="Ex: Cordeiro assado"></div>
       </div>
       <div class="divider"></div>
       <div class="grid2">
         <div class="field">
           <label class="label">Nº de Vinhos</label>
-          <input class="input" type="number" id="s-wines" value="4" min="2" max="10">
+          <select class="input" id="s-wines" onchange="App.updateScoreFields()">
+            <option value="2">2 vinhos</option><option value="3">3 vinhos</option>
+            <option value="4" selected>4 vinhos</option><option value="5">5 vinhos</option>
+            <option value="6">6 vinhos</option><option value="7">7 vinhos</option>
+            <option value="8">8 vinhos</option><option value="9">9 vinhos</option>
+            <option value="10">10 vinhos</option>
+          </select>
         </div>
         <div class="field">
           <label class="label">Nº de Participantes</label>
-          <input class="input" type="number" id="s-count" value="6" min="2" max="10" oninput="App.updateParticipantFields()">
+          <select class="input" id="s-count" onchange="App.updateParticipantFields()">
+            <option value="2">2 participantes</option><option value="3">3 participantes</option>
+            <option value="4">4 participantes</option><option value="5">5 participantes</option>
+            <option value="6" selected>6 participantes</option><option value="7">7 participantes</option>
+            <option value="8">8 participantes</option><option value="9">9 participantes</option>
+            <option value="10">10 participantes</option>
+          </select>
         </div>
       </div>
+      <div class="field">
+        <label class="label">Pontuação por Posição</label>
+        <p class="text-muted text-sm mt8" style="margin-bottom:10px;line-height:1.6">Defina os pontos de cada posição (escala de 0 a 20)</p>
+        <div class="score-grid" id="s-scores"></div>
+      </div>
+      <div class="divider"></div>
+      <div class="field">
+        <label class="label">Código de Acesso do Organizador (4 dígitos)</label>
+        <input class="input" type="password" id="s-pin" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="Ex: 1234">
+        <p class="text-muted text-sm mt8">Somente o organizador precisará digitar este código.</p>
+      </div>
+      <div class="divider"></div>
       <div class="field">
         <label class="label">Nomes dos Participantes</label>
         <div id="s-names" class="mt8"></div>
       </div>
       <div class="divider"></div>
-      <p class="text-muted text-sm" style="margin-bottom:16px;line-height:1.7">
-        Os vinhos serão identificados como <strong style="color:var(--gold)">Vinho 1, Vinho 2…</strong> — degustação às cegas.
-      </p>
+      <p class="text-muted text-sm" style="margin-bottom:16px;line-height:1.7">Os vinhos serão identificados como <strong style="color:var(--gold)">Vinho 1, Vinho 2…</strong> — degustação às cegas.</p>
       <button class="btn btn-primary" onclick="App.createSession()">✦ Criar Sessão</button>
     </div>
   </div>
 
-  <!-- Admin dashboard -->
+  <div id="pg-pin" class="page">
+    <div class="card" style="text-align:center">
+      <div class="section-label">Acesso do Organizador</div>
+      <p style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--muted);margin-bottom:4px">Digite o código de 4 dígitos</p>
+      <div class="pin-dots" id="pin-dots">
+        <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div>
+        <div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
+      </div>
+      <p id="pin-error" class="error-msg" style="text-align:center;margin-bottom:12px">Código incorreto. Tente novamente.</p>
+      <div class="pin-pad">
+        <button class="pin-key" onclick="App.pinKey('1')">1</button><button class="pin-key" onclick="App.pinKey('2')">2</button><button class="pin-key" onclick="App.pinKey('3')">3</button>
+        <button class="pin-key" onclick="App.pinKey('4')">4</button><button class="pin-key" onclick="App.pinKey('5')">5</button><button class="pin-key" onclick="App.pinKey('6')">6</button>
+        <button class="pin-key" onclick="App.pinKey('7')">7</button><button class="pin-key" onclick="App.pinKey('8')">8</button><button class="pin-key" onclick="App.pinKey('9')">9</button>
+        <button class="pin-key" onclick="App.pinKey('del')" style="font-size:14px">⌫</button>
+        <button class="pin-key" onclick="App.pinKey('0')">0</button>
+        <button class="pin-key" onclick="App.goHome()" style="font-size:11px;color:var(--muted)">✕</button>
+      </div>
+    </div>
+  </div>
+
   <div id="pg-admin" class="page">
     <div class="card" id="admin-header"></div>
     <div class="tabs">
@@ -377,7 +305,6 @@
     <div id="tab-results-content" style="display:none"></div>
   </div>
 
-  <!-- Guest entry (seleciona nome) -->
   <div id="pg-guest" class="page">
     <div class="card" id="guest-info"></div>
     <div class="card" id="guest-names">
@@ -387,23 +314,18 @@
         <p class="text-muted text-sm mt8">Já votaram:</p>
         <div id="voted-list" class="gap-voted"></div>
       </div>
-      <p id="all-voted-msg" style="display:none;font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--muted);text-align:center;padding:16px 0">
-        Todos já votaram! Aguarde a apuração.
-      </p>
-      <p id="name-error" style="color:#e57373;font-size:12px;margin-top:8px;display:none">Selecione seu nome para continuar.</p>
+      <p id="all-voted-msg" style="display:none;font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--muted);text-align:center;padding:16px 0">Todos já votaram! Aguarde a apuração.</p>
+      <p id="name-error" class="error-msg">Selecione seu nome para continuar.</p>
       <button class="btn btn-primary mt12" id="enter-btn" onclick="App.enterAsVoter()" disabled>✦ Entrar &amp; Votar</button>
     </div>
     <button class="btn btn-ghost btn-sm" onclick="App.goHome()" style="margin-top:4px">← Voltar</button>
   </div>
 
-  <!-- Voter view -->
   <div id="pg-voter" class="page">
     <div class="card" id="voter-info"></div>
     <div class="card" id="voter-ranking">
       <div class="section-label">Seu Ranking</div>
-      <p class="text-muted text-sm" style="margin-bottom:14px;line-height:1.6">
-        Use as setas ou arraste para ordenar do <strong style="color:var(--gold)">melhor ao pior</strong>.
-      </p>
+      <p class="text-muted text-sm" style="margin-bottom:14px;line-height:1.6">Use as setas ou arraste para ordenar do <strong style="color:var(--gold)">melhor ao pior</strong>.</p>
       <div id="wine-order"></div>
       <div class="divider"></div>
       <p class="text-muted text-sm" style="text-align:center" id="score-legend"></p>
@@ -411,7 +333,6 @@
     </div>
   </div>
 
-  <!-- Vote confirmed -->
   <div id="pg-thanks" class="page" style="text-align:center">
     <div class="card">
       <p style="font-size:48px;margin-bottom:12px">🍷</p>
@@ -421,30 +342,10 @@
     </div>
   </div>
 
-  <!-- Firebase guide modal -->
-  <div class="modal-bg" id="firebase-modal">
-    <div class="modal">
-      <div class="section-label">Configurar Firebase (Gratuito)</div>
-      <p style="font-size:13px;line-height:1.8;color:var(--cream);margin-bottom:16px">
-        Para que os votos sincronizem entre celulares em tempo real, siga estes passos simples:
-      </p>
-      <ol style="font-size:13px;line-height:2;color:var(--muted);padding-left:20px">
-        <li>Acesse <a href="https://console.firebase.google.com" target="_blank" style="color:var(--gold)">console.firebase.google.com</a></li>
-        <li>Crie um projeto (nome: <em>aldeia-wine</em>)</li>
-        <li>Clique em <strong style="color:var(--cream)">Realtime Database</strong> → Criar banco de dados</li>
-        <li>Escolha o modo <strong style="color:var(--cream)">teste</strong> (30 dias gratuito)</li>
-        <li>Em <strong style="color:var(--cream)">Configurações do Projeto</strong> → Adicionar app Web</li>
-        <li>Copie o objeto <code style="color:var(--gold2)">firebaseConfig</code></li>
-        <li>Abra este arquivo HTML num editor de texto e cole os valores no início do script</li>
-      </ol>
-      <button class="btn btn-ghost btn-sm mt16" onclick="App.closeFirebaseGuide()">Fechar</button>
-    </div>
-  </div>
-
   <!-- Confirm modal -->
   <div class="modal-bg" id="confirm-modal">
     <div class="modal">
-      <div class="section-label">Confirmar Apuração</div>
+      <div class="section-label">Confirmar</div>
       <p id="confirm-msg" style="font-family:'Cormorant Garamond',serif;font-size:18px;line-height:1.6;color:var(--cream)"></p>
       <div style="display:flex;gap:10px;margin-top:20px">
         <button class="btn btn-ghost" onclick="App.closeConfirm()" style="flex:1">Cancelar</button>
@@ -457,13 +358,24 @@
   <div class="modal-bg" id="wine-modal">
     <div class="modal">
       <div class="section-label" id="wine-modal-title"></div>
+      <div id="wm-ai-status" style="display:none;background:rgba(201,168,76,0.08);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:16px;font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;color:var(--gold);text-align:center">
+        🔍 Analisando rótulo com IA…
+      </div>
       <div class="field"><label class="label">Nome do Vinho</label><input class="input" id="wm-name" placeholder="Ex: Barca Velha 2011"></div>
+      <div class="field"><label class="label">Quem Trouxe</label>
+        <select class="input" id="wm-owner"><option value="">— Selecione —</option></select>
+      </div>
       <div class="field"><label class="label">Produtor</label><input class="input" id="wm-producer" placeholder="Ex: Casa Ferreirinha"></div>
       <div class="grid2">
         <div class="field"><label class="label">Região</label><input class="input" id="wm-region" placeholder="Ex: Douro"></div>
         <div class="field"><label class="label">Safra</label><input class="input" id="wm-vintage" placeholder="2019"></div>
       </div>
-      <div class="field"><label class="label">Notas</label><textarea class="input" id="wm-notes" rows="3" style="resize:vertical"></textarea></div>
+      <div class="grid2">
+        <div class="field"><label class="label">Uva(s)</label><input class="input" id="wm-grape" placeholder="Ex: Touriga Nacional"></div>
+        <div class="field"><label class="label">Teor Alcoólico</label><input class="input" id="wm-alcohol" placeholder="Ex: 13,5%"></div>
+      </div>
+      <div class="field"><label class="label">Preço Aprox.</label><input class="input" id="wm-price" placeholder="Ex: R$ 180"></div>
+      <div class="field"><label class="label">Notas de Degustação</label><textarea class="input" id="wm-notes" rows="3" style="resize:vertical"></textarea></div>
       <div style="display:flex;gap:10px;margin-top:8px">
         <button class="btn btn-ghost" onclick="App.closeWineModal()" style="flex:1">Cancelar</button>
         <button class="btn btn-primary" onclick="App.saveWineDetails()" style="flex:1">Salvar</button>
@@ -471,14 +383,17 @@
     </div>
   </div>
 
+  <!-- Report overlay -->
+  <div id="report-overlay" style="display:none">
+    <button class="report-close" onclick="App.closeReport()">✕ Fechar</button>
+    <div class="report-content" id="report-body"></div>
+  </div>
+
   <div id="toast-el" class="toast" style="display:none"></div>
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════════════════
-const STORAGE_KEY = "aldeia_v2";
+const STORAGE_KEY = "aldeia_v3";
 let session = null;
 let activeParticipantId = null;
 let editingWineId = null;
@@ -487,253 +402,207 @@ let toastTimer = null;
 let pollTimer = null;
 let dragSrcIdx = null;
 let touchDragData = null;
+let pinBuffer = "";
 
-// ═══════════════════════════════════════════════════════════════
-// PERSISTENCE  (Firebase preferred, localStorage fallback)
-// ═══════════════════════════════════════════════════════════════
+// ═══ PERSISTENCE ═══════════════════════════════════════════════
 async function saveSession(data) {
-  const json = JSON.stringify(data);
-  localStorage.setItem(STORAGE_KEY, json);
+  // Strip large base64 photos before saving to Firebase (keep in localStorage only)
   const fb = window._firebase;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   if (fb && fb.ok && fb.db) {
-    try { await fb.set(fb.ref(fb.db, "session"), JSON.parse(json)); } catch(e) {}
+    const slim = JSON.parse(JSON.stringify(data));
+    slim.wines = slim.wines.map(w => ({ ...w, photos: {} }));
+    try { await fb.set(fb.ref(fb.db, "session"), slim); } catch(e){}
   }
 }
-
 async function loadSession() {
   const fb = window._firebase;
+  const local = localStorage.getItem(STORAGE_KEY);
   if (fb && fb.ok && fb.db) {
     try {
-      const snap = await fb.get(fb.ref(fb.db, "session"));
-      if (snap.exists()) return snap.val();
-    } catch(e) {}
+      const s = await fb.get(fb.ref(fb.db, "session"));
+      if (s.exists()) {
+        const remote = s.val();
+        // Merge local photos back in
+        if (local) {
+          const lc = JSON.parse(local);
+          if (lc.created === remote.created) {
+            remote.wines = remote.wines.map((w, i) => ({ ...w, photos: lc.wines[i]?.photos || {} }));
+          }
+        }
+        return remote;
+      }
+    } catch(e){}
   }
-  const local = localStorage.getItem(STORAGE_KEY);
   return local ? JSON.parse(local) : null;
 }
-
 async function clearSession() {
   localStorage.removeItem(STORAGE_KEY);
   const fb = window._firebase;
-  if (fb && fb.ok && fb.db) {
-    try { await fb.remove(fb.ref(fb.db, "session")); } catch(e) {}
-  }
+  if (fb && fb.ok && fb.db) { try { await fb.remove(fb.ref(fb.db,"session")); } catch(e){} }
 }
-
 function subscribeSession(cb) {
   const fb = window._firebase;
   if (fb && fb.ok && fb.db) {
-    fb.onValue(fb.ref(fb.db, "session"), snap => {
-      if (snap.exists()) cb(snap.val());
+    fb.onValue(fb.ref(fb.db,"session"), s => {
+      if (!s.exists()) return;
+      const remote = s.val();
+      // Restore local photos
+      const local = localStorage.getItem(STORAGE_KEY);
+      if (local) {
+        const lc = JSON.parse(local);
+        if (lc.created === remote.created) {
+          remote.wines = remote.wines.map((w,i) => ({ ...w, photos: lc.wines[i]?.photos || {} }));
+        }
+      }
+      cb(remote);
     });
     return;
   }
-  // Fallback: poll localStorage every 5s
-  pollTimer = setInterval(() => {
-    const local = localStorage.getItem(STORAGE_KEY);
-    if (local) { try { cb(JSON.parse(local)); } catch(e) {} }
-  }, 5000);
+  pollTimer = setInterval(() => { const l=localStorage.getItem(STORAGE_KEY); if(l) try{cb(JSON.parse(l));}catch(e){} }, 5000);
 }
 
-// ═══════════════════════════════════════════════════════════════
-// UTILS
-// ═══════════════════════════════════════════════════════════════
-const genId = () => Math.random().toString(36).slice(2, 8).toUpperCase();
-
-function fmtDate(d) {
-  if (!d) return "";
-  try { return new Date(d + "T12:00:00").toLocaleDateString("pt-BR", {day:"2-digit",month:"long",year:"numeric"}); }
-  catch(e) { return d; }
-}
-
-function getScore(rank, total) {
-  // 1st = 10, 2nd = 9... down to minimum 1
-  return Math.max(1, total + 1 - (rank + 1) + (total >= 10 ? 0 : 10 - total));
-}
-
+// ═══ UTILS ══════════════════════════════════════════════════════
+const genId = () => Math.random().toString(36).slice(2,8).toUpperCase();
+function fmtDate(d) { if(!d)return""; try{return new Date(d+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"});}catch(e){return d;} }
 function showToast(msg) {
-  const el = document.getElementById("toast-el");
-  el.textContent = "✦ " + msg;
-  el.style.display = "block";
-  if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.style.display = "none"; }, 2600);
+  const el=document.getElementById("toast-el"); el.textContent="✦ "+msg; el.style.display="block";
+  if(toastTimer)clearTimeout(toastTimer); toastTimer=setTimeout(()=>{el.style.display="none";},2800);
 }
-
-function showPage(id) {
-  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-  window.scrollTo(0, 0);
-}
-
+function showPage(id) { document.querySelectorAll(".page").forEach(p=>p.classList.remove("active")); document.getElementById(id).classList.add("active"); window.scrollTo(0,0); }
 function metaHtml(s) {
-  let html = "";
-  if (s.sessionDate) html += `<span class="meta-tag">📅 ${fmtDate(s.sessionDate)}</span>`;
-  if (s.host)        html += `<span class="meta-tag">🏠 ${s.host}</span>`;
-  if (s.theme)       html += `<span class="meta-tag">🍇 ${s.theme}</span>`;
-  if (s.mainDish)    html += `<span class="meta-tag">🍽️ ${s.mainDish}</span>`;
-  return html ? `<div class="meta-row">${html}</div>` : "";
+  let h="";
+  if(s.sessionDate) h+=`<span class="meta-tag">📅 ${fmtDate(s.sessionDate)}</span>`;
+  if(s.host)        h+=`<span class="meta-tag">🏠 ${s.host}</span>`;
+  if(s.theme)       h+=`<span class="meta-tag">🍇 ${s.theme}</span>`;
+  if(s.mainDish)    h+=`<span class="meta-tag">🍽️ ${s.mainDish}</span>`;
+  return h?`<div class="meta-row">${h}</div>`:"";
 }
 
-// ═══════════════════════════════════════════════════════════════
-// APP
-// ═══════════════════════════════════════════════════════════════
+// ═══ ANTHROPIC API (via Cloudflare Worker) ═════════════════════
+// Cole aqui a URL do seu Cloudflare Worker após o deploy
+const WORKER_URL = "https://aldeia-wine-proxy.romulopsilva.workers.dev";
+
+async function callClaude(messages, system, max_tokens=800) {
+  if (!WORKER_URL || WORKER_URL === "https://aldeia-wine-proxy.romulopsilva.workers.dev") {
+    throw new Error("URL do Worker não configurada. Siga o guia de configuração.");
+  }
+  const body = { model:"claude-sonnet-4-20250514", max_tokens, messages };
+  if (system) body.system = system;
+  const res = await fetch(WORKER_URL, {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error(`Worker retornou ${res.status}`);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data.content?.[0]?.text || "";
+}
+
+// ═══ APP ════════════════════════════════════════════════════════
 const App = {
 
-  // ── Boot ──────────────────────────────────────────────────────
   async init() {
-    // Wait for firebase module to attach
-    await new Promise(r => setTimeout(r, 300));
+    await new Promise(r=>setTimeout(r,300));
     App.updateParticipantFields();
-
-    // Show firebase warning if not configured
-    const fb = window._firebase;
-    if (!fb || !fb.ok) {
-      document.getElementById("firebase-warn").style.display = "block";
-    }
-
+    App.updateScoreFields();
     session = await loadSession();
-    if (session) {
-      App.renderHome();
-      showPage("pg-home");
-      // Live updates
-      subscribeSession(updated => {
-        session = updated;
-        App.refreshLiveViews();
-      });
-    } else {
-      showPage("pg-setup");
-    }
+    if(session) { App.renderHome(); showPage("pg-home"); subscribeSession(u=>{session=u;App.refreshLiveViews();}); }
+    else showPage("pg-setup");
   },
 
   refreshLiveViews() {
-    const cur = document.querySelector(".page.active")?.id;
-    if (cur === "pg-admin")  App.renderAdmin();
-    if (cur === "pg-home")   App.renderHome();
-    if (cur === "pg-guest")  App.renderGuest();
+    const cur=document.querySelector(".page.active")?.id;
+    if(cur==="pg-admin") App.renderAdmin();
+    if(cur==="pg-home")  App.renderHome();
+    if(cur==="pg-guest") App.renderGuest();
   },
 
-  // ── Navigation ────────────────────────────────────────────────
   goHome()  { App.renderHome(); showPage("pg-home"); },
-  goAdmin() { App.renderAdmin(); showPage("pg-admin"); },
-  goGuest() { selectedNameId = null; App.renderGuest(); showPage("pg-guest"); },
+  goGuest() { selectedNameId=null; App.renderGuest(); showPage("pg-guest"); },
 
-  // ── Setup form ────────────────────────────────────────────────
+  // ── Setup ────────────────────────────────────────────────────
+  updateScoreFields() {
+    const n=Math.max(2,Math.min(10,parseInt(document.getElementById("s-wines").value)||4));
+    const container=document.getElementById("s-scores");
+    const existing=container.querySelectorAll("select");
+    const vals=Array.from(existing).map(s=>parseInt(s.value)||0);
+    container.innerHTML="";
+    const defaults=[20,18,16,14,12,10,8,6,4,2];
+    for(let i=0;i<n;i++){
+      const v=vals[i]>0?vals[i]:(defaults[i]!==undefined?defaults[i]:Math.max(1,20-(i*2)));
+      const opts=Array.from({length:21},(_,k)=>k).reverse().map(k=>`<option value="${k}"${k===v?" selected":""}>${k}</option>`).join("");
+      container.innerHTML+=`<div class="score-item"><p class="label">${i+1}º</p><select id="sc-${i}" style="background:transparent;border:none;color:var(--gold2);font-family:'Cinzel',serif;font-size:18px;font-weight:600;width:100%;text-align:center;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none;">${opts}</select></div>`;
+    }
+  },
   updateParticipantFields() {
-    const n = Math.max(2, Math.min(10, parseInt(document.getElementById("s-count").value) || 6));
-    const container = document.getElementById("s-names");
-    const existing = container.querySelectorAll("input");
-    const vals = Array.from(existing).map(i => i.value);
-    container.innerHTML = "";
-    for (let i = 0; i < n; i++) {
-      const inp = document.createElement("input");
-      inp.className = "input";
-      inp.placeholder = `Participante ${i+1}`;
-      inp.value = vals[i] || "";
-      inp.style.marginBottom = "8px";
-      container.appendChild(inp);
+    const n=Math.max(2,Math.min(10,parseInt(document.getElementById("s-count").value)||6));
+    const container=document.getElementById("s-names");
+    const vals=Array.from(container.querySelectorAll("input")).map(i=>i.value);
+    container.innerHTML="";
+    for(let i=0;i<n;i++){
+      const inp=document.createElement("input"); inp.className="input"; inp.placeholder=`Participante ${i+1}`; inp.value=vals[i]||""; inp.style.marginBottom="8px"; container.appendChild(inp);
     }
   },
 
   async createSession() {
-    const numWines = Math.max(2, Math.min(10, parseInt(document.getElementById("s-wines").value) || 4));
-    const numPart  = Math.max(2, Math.min(10, parseInt(document.getElementById("s-count").value) || 6));
-    const nameInputs = document.querySelectorAll("#s-names input");
-
-    const wines = Array.from({length: numWines}, (_, i) => ({
-      id: i+1, label: String(i+1), score: 0, voteCount: 0, details: null, photos: {}
-    }));
-    const participants = Array.from(nameInputs).slice(0, numPart).map((inp, i) => ({
-      id: genId(), name: inp.value.trim() || `Participante ${i+1}`, voted: false, votes: []
-    }));
-
-    session = {
-      wines, participants,
-      sessionDate: document.getElementById("s-date").value,
-      host:        document.getElementById("s-host").value.trim(),
-      theme:       document.getElementById("s-theme").value.trim(),
-      mainDish:    document.getElementById("s-dish").value.trim(),
-      status: "voting",
-      created: new Date().toISOString()
-    };
-
+    const numWines=Math.max(2,Math.min(10,parseInt(document.getElementById("s-wines").value)||4));
+    const numPart=Math.max(2,Math.min(10,parseInt(document.getElementById("s-count").value)||6));
+    const pin=document.getElementById("s-pin").value.trim();
+    if(!pin||pin.length<4){showToast("Digite um código de 4 dígitos!");return;}
+    const scores=Array.from({length:numWines},(_,i)=>parseInt(document.getElementById(`sc-${i}`)?.value)||Math.max(1,20-(i*2)));
+    const wines=Array.from({length:numWines},(_,i)=>({id:i+1,label:String(i+1),score:0,voteCount:0,details:null,photos:{},aiInfo:null}));
+    const nameInputs=document.querySelectorAll("#s-names input");
+    const participants=Array.from(nameInputs).slice(0,numPart).map((inp,i)=>({id:genId(),name:inp.value.trim()||`Participante ${i+1}`,voted:false,votes:[]}));
+    session={wines,participants,scores,pin,sessionDate:document.getElementById("s-date").value,host:document.getElementById("s-host").value.trim(),theme:document.getElementById("s-theme").value.trim(),mainDish:document.getElementById("s-dish").value.trim(),status:"voting",created:new Date().toISOString()};
     await saveSession(session);
-    App.renderAdmin();
-    showPage("pg-admin");
-
-    subscribeSession(updated => {
-      session = updated;
-      App.refreshLiveViews();
-    });
+    App.renderAdmin(); showPage("pg-admin");
+    subscribeSession(u=>{session=u;App.refreshLiveViews();});
   },
 
-  // ── Home page ─────────────────────────────────────────────────
+  // ── PIN ───────────────────────────────────────────────────────
+  promptAdminPin() { if(!session){showPage("pg-setup");return;} pinBuffer=""; App.updatePinDots(); document.getElementById("pin-error").style.display="none"; showPage("pg-pin"); },
+  pinKey(k) {
+    if(k==="del"){pinBuffer=pinBuffer.slice(0,-1);App.updatePinDots();return;}
+    if(pinBuffer.length>=4)return;
+    pinBuffer+=k; App.updatePinDots();
+    if(pinBuffer.length===4) setTimeout(()=>App.checkPin(),120);
+  },
+  updatePinDots(){for(let i=0;i<4;i++)document.getElementById(`pd${i}`).classList.toggle("filled",i<pinBuffer.length);},
+  checkPin(){if(pinBuffer===String(session.pin)){App.renderAdmin();showPage("pg-admin");}else{document.getElementById("pin-error").style.display="block";pinBuffer="";App.updatePinDots();}},
+
+  // ── Home ──────────────────────────────────────────────────────
   renderHome() {
-    if (!session) return;
-    const votedN = session.participants.filter(p=>p.voted).length;
-    const total  = session.participants.length;
-    const pct    = Math.round(votedN/total*100);
-    document.getElementById("home-session-info").innerHTML = `
-      <div class="section-label">Sessão Ativa</div>
-      ${metaHtml(session)}
-      <p class="text-muted text-sm mt8">${session.wines.length} vinhos · ${total} participantes · ${votedN} votaram</p>
-      <div class="progress-wrap mt8"><div class="progress-fill" style="width:${pct}%"></div></div>
-    `;
+    if(!session)return;
+    const v=session.participants.filter(p=>p.voted).length,t=session.participants.length;
+    document.getElementById("home-session-info").innerHTML=`<div class="section-label">Sessão Ativa</div>${metaHtml(session)}<p class="text-muted text-sm mt8">${session.wines.length} vinhos · ${t} participantes · ${v} votaram</p><div class="progress-wrap mt8"><div class="progress-fill" style="width:${Math.round(v/t*100)}%"></div></div>`;
   },
 
   // ── Admin ─────────────────────────────────────────────────────
   renderAdmin() {
-    if (!session) return;
-    const votedN = session.participants.filter(p=>p.voted).length;
-    const total  = session.participants.length;
-    const pct    = Math.round(votedN/total*100);
-
-    document.getElementById("admin-header").innerHTML = `
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
-        <div style="flex:1">
-          ${metaHtml(session)}
-          <p class="text-muted text-sm mt8">${session.wines.length} vinhos · ${total} participantes</p>
-        </div>
-        <div style="text-align:center;flex-shrink:0">
-          <p style="font-family:'Cinzel',serif;font-size:26px;color:var(--gold2)">${votedN}/${total}</p>
-          <p class="text-muted text-sm">votaram</p>
-        </div>
-      </div>
-      <div class="progress-wrap mt8"><div class="progress-fill" style="width:${pct}%"></div></div>
-    `;
-
-    // Re-render active tab
-    const activeTab = document.getElementById("tab-links").classList.contains("active") ? "links" : "results";
-    App.renderTabLinks();
-    App.renderTabResults();
-    App.switchTab(activeTab);
+    if(!session)return;
+    const v=session.participants.filter(p=>p.voted).length,t=session.participants.length;
+    document.getElementById("admin-header").innerHTML=`<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px"><div style="flex:1">${metaHtml(session)}<p class="text-muted text-sm mt8">${session.wines.length} vinhos · ${t} participantes</p></div><div style="text-align:center;flex-shrink:0"><p style="font-family:'Cinzel',serif;font-size:26px;color:var(--gold2)">${v}/${t}</p><p class="text-muted text-sm">votaram</p></div></div><div class="progress-wrap mt8"><div class="progress-fill" style="width:${Math.round(v/t*100)}%"></div></div>`;
+    const activeTab=document.getElementById("tab-links").classList.contains("active")?"links":"results";
+    App.renderTabLinks(); App.renderTabResults(); App.switchTab(activeTab);
   },
 
-  switchTab(name) {
-    ["links","results"].forEach(t => {
-      document.getElementById(`tab-${t}`).classList.toggle("active", t===name);
-      document.getElementById(`tab-${t}-content`).style.display = t===name ? "block" : "none";
+  switchTab(name){
+    ["links","results"].forEach(t=>{
+      document.getElementById(`tab-${t}`).classList.toggle("active",t===name);
+      document.getElementById(`tab-${t}-content`).style.display=t===name?"block":"none";
     });
   },
 
   renderTabLinks() {
-    const container = document.getElementById("tab-links-content");
-    const rows = session.participants.map(p => `
-      <div class="participant-row">
-        <span class="p-name">${p.name}</span>
-        ${p.voted
-          ? `<span class="voted-badge">✓ Votou</span>`
-          : `<span class="waiting-badge">Aguardando…</span>`}
-      </div>
-    `).join("");
-
-    container.innerHTML = `
+    const rows=session.participants.map(p=>`<div class="participant-row"><span class="p-name">${p.name}</span>${p.voted?`<span class="voted-badge">✓ Votou</span>`:`<span class="waiting-badge">Aguardando…</span>`}</div>`).join("");
+    document.getElementById("tab-links-content").innerHTML=`
       <div class="card">
         <div class="section-label">Compartilhar</div>
         <div style="background:rgba(201,168,76,0.06);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px">
           <p class="label" style="margin-bottom:6px">Link do App</p>
-          <p class="text-muted text-sm" style="line-height:1.7;margin-bottom:14px">
-            Envie este link para todos os participantes. Cada um escolhe o próprio nome e vota — sem login, sem senha.
-          </p>
+          <p class="text-muted text-sm" style="line-height:1.7;margin-bottom:14px">Envie para todos os participantes. Cada um escolhe o próprio nome e vota.</p>
           <button class="btn btn-gold" onclick="App.copyLink()">📋 Copiar Link para Compartilhar</button>
         </div>
         <div class="section-label" style="margin-top:4px">Status dos Participantes</div>
@@ -742,405 +611,532 @@ const App = {
         <button class="btn btn-primary" onclick="App.tryFinalize()">✦ Apurar Votos</button>
         <button class="btn btn-ghost btn-sm" onclick="App.goHome()" style="margin-top:10px">← Voltar ao Início</button>
         <button class="btn btn-ghost btn-sm" onclick="App.newSession()" style="margin-top:8px">+ Nova Sessão</button>
-      </div>
-    `;
+      </div>`;
   },
 
   renderTabResults() {
-    const container = document.getElementById("tab-results-content");
-    if (session.status !== "done") {
-      container.innerHTML = `
-        <div class="card" style="text-align:center;padding:40px 24px">
-          <p style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--muted)">
-            Apure os votos para ver os resultados
-          </p>
-        </div>`;
+    const container=document.getElementById("tab-results-content");
+    if(session.status!=="done"){
+      container.innerHTML=`<div class="card" style="text-align:center;padding:40px 24px"><p style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--muted)">Apure os votos para ver os resultados</p></div>`;
       return;
     }
+    const ranked=[...session.wines].sort((a,b)=>b.score-a.score);
+    const medals=["🥇","🥈","🥉"];
+    const sc=session.scores||[];
 
-    const ranked = [...session.wines].sort((a,b) => b.score - a.score);
-    const medals = ["🥇","🥈","🥉"];
-
-    const rankRows = ranked.map((w, idx) => `
+    const rankRows=ranked.map((w,idx)=>`
       <div class="result-row${idx===0?" gold":""}">
         <span class="medal">${medals[idx]||`#${idx+1}`}</span>
         <div style="flex:1">
           <div class="result-name">Vinho ${w.label}${w.details?.name?` <span style="color:var(--muted);font-weight:300;font-size:16px">— ${w.details.name}</span>`:""}</div>
-          <div class="result-sub">${w.voteCount} voto(s)</div>
+          <div class="result-sub">${w.details?.owner?`👤 ${w.details.owner} · `:""}${w.voteCount} voto(s)</div>
         </div>
         <span class="result-pts">${w.score} pts</span>
-      </div>
-    `).join("");
+      </div>`).join("");
 
-    const wineCards = ranked.map(w => {
-      const hasDetails = w.details?.name;
-      const photoFront = w.photos?.Frente
-        ? `<img src="${w.photos.Frente}" class="photo-thumb">`
-        : `<label class="photo-zone" onclick="App.triggerPhoto('${w.id}','Frente')"><span style="font-size:28px;color:var(--gold)">📷</span><p class="text-muted text-sm mt8">Foto da Frente</p></label>`;
-      const photoVerso = w.photos?.Verso
-        ? `<img src="${w.photos.Verso}" class="photo-thumb">`
-        : `<label class="photo-zone" onclick="App.triggerPhoto('${w.id}','Verso')"><span style="font-size:28px;color:var(--gold)">📷</span><p class="text-muted text-sm mt8">Foto do Verso</p></label>`;
+    // Vote table
+    const wineOrder=[...session.wines].sort((a,b)=>a.id-b.id);
+    const theadCols=wineOrder.map(w=>`<th>V${w.label}</th>`).join("");
+    const tbodyRows=session.participants.filter(p=>p.voted).map(p=>{
+      const cells=wineOrder.map(w=>{
+        const v=p.votes.find(x=>x.wineId===w.id);
+        const pts=v?v.score:"-";
+        const maxPts=sc[0]||20;
+        return `<td class="${v&&v.score===maxPts?"best-cell":"pts-cell"}">${pts}</td>`;
+      }).join("");
+      return `<tr><td>${p.name}</td>${cells}</tr>`;
+    }).join("");
+    const totalRow=wineOrder.map(w=>`<td>${w.score}</td>`).join("");
+
+    // Wine cards
+    const wineCards=ranked.map(w=>{
+      const d=w.details||{};
+      const hasDetails=!!d.name;
+      const photoFront=w.photos?.Frente
+        ? `<div><p class="text-muted text-sm" style="margin-bottom:8px">Frente</p><img src="${w.photos.Frente}" class="photo-thumb"><button class="btn btn-ghost btn-sm mt8" onclick="App.triggerPhoto('${w.id}','Frente',true)">Trocar</button></div>`
+        : `<div><p class="text-muted text-sm" style="margin-bottom:8px">Frente</p><label class="photo-zone" onclick="App.triggerPhoto('${w.id}','Frente',true)"><span style="font-size:28px;color:var(--gold)">📷</span><p class="text-muted text-sm mt8">Foto da Frente</p><p style="font-size:10px;color:var(--gold);margin-top:6px;font-family:'Cinzel',serif;letter-spacing:1px">IA identifica o vinho</p></label></div>`;
+      const photoVerso=w.photos?.Verso
+        ? `<div><p class="text-muted text-sm" style="margin-bottom:8px">Verso</p><img src="${w.photos.Verso}" class="photo-thumb"><button class="btn btn-ghost btn-sm mt8" onclick="App.triggerPhoto('${w.id}','Verso',false)">Trocar</button></div>`
+        : `<div><p class="text-muted text-sm" style="margin-bottom:8px">Verso</p><label class="photo-zone" onclick="App.triggerPhoto('${w.id}','Verso',false)"><span style="font-size:28px;color:var(--gold)">📷</span><p class="text-muted text-sm mt8">Foto do Verso</p></label></div>`;
 
       return `
         <div class="wine-card">
           <div class="wine-card-header">
-            <div>
-              <span class="tag">Vinho ${w.label}</span>
-              <span style="font-family:'Cormorant Garamond',serif;font-size:18px;margin-left:10px">${hasDetails ? w.details.name : "Sem identificação"}</span>
-            </div>
+            <div><span class="tag">Vinho ${w.label}</span><span style="font-family:'Cormorant Garamond',serif;font-size:18px;margin-left:10px">${hasDetails?d.name:"Sem identificação"}</span></div>
             <button class="btn btn-ghost btn-sm" style="width:auto" onclick="App.openWineModal('${w.id}')">${hasDetails?"Editar":"Identificar"}</button>
           </div>
-          ${hasDetails ? `
+          ${hasDetails?`
           <div class="wine-card-body">
             <div class="grid2" style="gap:10px">
-              ${w.details.producer?`<div><p class="label">Produtor</p><p style="font-family:'Cormorant Garamond',serif;font-size:15px">${w.details.producer}</p></div>`:""}
-              ${w.details.region?`<div><p class="label">Região</p><p style="font-family:'Cormorant Garamond',serif;font-size:15px">${w.details.region}</p></div>`:""}
-              ${w.details.vintage?`<div><p class="label">Safra</p><p style="font-family:'Cormorant Garamond',serif;font-size:15px">${w.details.vintage}</p></div>`:""}
+              ${d.owner?`<div><p class="label">Trouxe</p><p style="font-family:'Cormorant Garamond',serif;font-size:15px">👤 ${d.owner}</p></div>`:""}
+              ${d.producer?`<div><p class="label">Produtor</p><p style="font-family:'Cormorant Garamond',serif;font-size:15px">${d.producer}</p></div>`:""}
+              ${d.region?`<div><p class="label">Região</p><p style="font-family:'Cormorant Garamond',serif;font-size:15px">${d.region}</p></div>`:""}
+              ${d.vintage?`<div><p class="label">Safra</p><p style="font-family:'Cormorant Garamond',serif;font-size:15px">${d.vintage}</p></div>`:""}
+              ${d.grape?`<div><p class="label">Uva(s)</p><p style="font-family:'Cormorant Garamond',serif;font-size:15px">${d.grape}</p></div>`:""}
+              ${d.alcohol?`<div><p class="label">Teor</p><p style="font-family:'Cormorant Garamond',serif;font-size:15px">${d.alcohol}</p></div>`:""}
+              ${d.price?`<div><p class="label">Preço</p><p style="font-family:'Cormorant Garamond',serif;font-size:15px">${d.price}</p></div>`:""}
             </div>
-            ${w.details.notes?`<div class="mt12"><p class="label">Notas</p><p class="text-muted" style="line-height:1.7">${w.details.notes}</p></div>`:""}
-          </div>` : ""}
+            ${d.notes?`<div class="mt12"><p class="label">Notas</p><p class="text-muted" style="line-height:1.7">${d.notes}</p></div>`:""}
+          </div>`:""}
           <div class="wine-card-photos">
-            <p class="label" style="margin-bottom:14px">Fotos do Rótulo</p>
-            <div class="grid2" style="gap:12px">
-              <div>
-                <p class="text-muted text-sm" style="margin-bottom:8px">Frente</p>
-                ${photoFront}
-                ${w.photos?.Frente?`<button class="btn btn-ghost btn-sm mt8" onclick="App.triggerPhoto('${w.id}','Frente')">Trocar</button>`:""}
-              </div>
-              <div>
-                <p class="text-muted text-sm" style="margin-bottom:8px">Verso</p>
-                ${photoVerso}
-                ${w.photos?.Verso?`<button class="btn btn-ghost btn-sm mt8" onclick="App.triggerPhoto('${w.id}','Verso')">Trocar</button>`:""}
-              </div>
-            </div>
+            <p class="label" style="margin-bottom:14px">Fotos do Rótulo <span style="font-size:9px;color:var(--gold);opacity:0.7;margin-left:8px">· IA identifica pelo rótulo ao fotografar a frente</span></p>
+            <div class="grid2" style="gap:12px">${photoFront}${photoVerso}</div>
           </div>
-        </div>
-      `;
+          ${w.aiInfo?`<div class="wine-card-ai"><div class="ai-info-box"><p class="label" style="margin-bottom:8px">📖 Informações do Vinho</p><p>${w.aiInfo}</p></div></div>`:""}
+        </div>`;
     }).join("");
 
-    // Session summary at top of results
-    const summaryMeta = metaHtml(session);
-    container.innerHTML = `
-      ${summaryMeta ? `<div class="card">${summaryMeta}</div>` : ""}
+    const summaryMeta=metaHtml(session);
+    container.innerHTML=`
+      ${summaryMeta?`<div class="card">${summaryMeta}</div>`:""}
+      <div class="card"><div class="section-label">Ranking Final</div>${rankRows}</div>
       <div class="card">
-        <div class="section-label">Ranking Final</div>
-        ${rankRows}
+        <div class="section-label">Votos por Participante</div>
+        <div style="overflow-x:auto">
+          <table class="vote-table">
+            <thead><tr><th>Participante</th>${theadCols}</tr></thead>
+            <tbody>${tbodyRows}</tbody>
+            <tfoot><tr class="total-row"><td>Total</td>${totalRow}</tr></tfoot>
+          </table>
+        </div>
       </div>
       ${wineCards}
-    `;
+      <div class="card" style="border-color:rgba(200,80,80,0.3);background:linear-gradient(135deg,rgba(50,10,10,0.9),rgba(30,5,5,0.95))">
+        <div class="section-label" style="color:#e57373">Encerrar Sessão</div>
+        <p class="text-muted text-sm" style="line-height:1.7;margin-bottom:16px">Gera o relatório completo com análise de cada vinho, padrão de votações e perfil de cada degustador.</p>
+        <button class="btn btn-gold" onclick="App.generateReport()" id="btn-report">📊 Gerar Relatório &amp; Encerrar</button>
+        <button class="btn btn-ghost btn-sm" onclick="App.newSession()" style="margin-top:10px">+ Nova Sessão</button>
+      </div>`;
   },
 
-  copyLink() {
-    const url = window.location.href;
-    if (navigator.share) {
-      navigator.share({ title: "Aldeia Wine Group — Votação", url })
-        .catch(() => App._copyToClipboard(url));
-    } else {
-      App._copyToClipboard(url);
-    }
-  },
-  _copyToClipboard(text) {
-    if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(text).then(() => showToast("Link copiado!"));
-    } else {
-      const ta = document.createElement("textarea");
-      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
-      document.body.appendChild(ta); ta.select();
-      document.execCommand("copy"); document.body.removeChild(ta);
-      showToast("Link copiado!");
-    }
-  },
-
-  tryFinalize() {
-    const voted = session.participants.filter(p=>p.voted).length;
-    const total = session.participants.length;
-    if (voted < total) {
-      document.getElementById("confirm-msg").textContent =
-        `Ainda há ${total-voted} participante(s) sem voto. Deseja apurar mesmo assim?`;
-      document.getElementById("confirm-ok").onclick = () => { App.closeConfirm(); App.finalize(); };
-      document.getElementById("confirm-modal").classList.add("open");
-    } else {
-      App.finalize();
-    }
-  },
-  closeConfirm() { document.getElementById("confirm-modal").classList.remove("open"); },
-
-  async finalize() {
-    const scores = {};
-    session.wines.forEach(w => { scores[w.id] = {total:0,count:0}; });
-    session.participants.forEach(p => {
-      if (!p.voted) return;
-      p.votes.forEach(v => { scores[v.wineId].total += v.score; scores[v.wineId].count++; });
-    });
-    session.wines = session.wines.map(w => ({
-      ...w, score: scores[w.id].total, voteCount: scores[w.id].count
-    }));
-    session.status = "done";
-    await saveSession(session);
-    App.renderAdmin();
-    App.switchTab("results");
-  },
-
-  async newSession() {
-    await clearSession();
-    session = null;
-    showPage("pg-setup");
-    App.updateParticipantFields();
-    if (pollTimer) clearInterval(pollTimer);
-  },
-
-  // ── Wine detail modal ─────────────────────────────────────────
-  openWineModal(wineId) {
-    editingWineId = parseInt(wineId);
-    const wine = session.wines.find(w => w.id === editingWineId);
-    const d = wine.details || {};
-    document.getElementById("wine-modal-title").textContent = `Identificar Vinho ${wine.label}`;
-    document.getElementById("wm-name").value     = d.name     || "";
-    document.getElementById("wm-producer").value = d.producer || "";
-    document.getElementById("wm-region").value   = d.region   || "";
-    document.getElementById("wm-vintage").value  = d.vintage  || "";
-    document.getElementById("wm-notes").value    = d.notes    || "";
-    document.getElementById("wine-modal").classList.add("open");
-  },
-  closeWineModal() { document.getElementById("wine-modal").classList.remove("open"); editingWineId = null; },
-  async saveWineDetails() {
-    if (!editingWineId) return;
-    const details = {
-      name:     document.getElementById("wm-name").value.trim(),
-      producer: document.getElementById("wm-producer").value.trim(),
-      region:   document.getElementById("wm-region").value.trim(),
-      vintage:  document.getElementById("wm-vintage").value.trim(),
-      notes:    document.getElementById("wm-notes").value.trim()
-    };
-    session.wines = session.wines.map(w => w.id===editingWineId ? {...w, details} : w);
-    await saveSession(session);
-    App.closeWineModal();
-    App.renderTabResults();
-    showToast("Detalhes salvos!");
-  },
-
-  // ── Photo upload ───────────────────────────────────────────────
-  triggerPhoto(wineId, side) {
-    const inp = document.createElement("input");
-    inp.type = "file"; inp.accept = "image/*"; inp.capture = "environment";
-    inp.style.display = "none";
-    document.body.appendChild(inp);
-    inp.onchange = async e => {
-      const file = e.target.files[0]; if (!file) return;
-      const reader = new FileReader();
-      reader.onload = async ev => {
-        const id = parseInt(wineId);
-        session.wines = session.wines.map(w => {
-          if (w.id !== id) return w;
-          return {...w, photos: {...(w.photos||{}), [side]: ev.target.result}};
-        });
+  // ── Photo + AI identification ─────────────────────────────────
+  triggerPhoto(wineId, side, runAI) {
+    const inp=document.createElement("input"); inp.type="file"; inp.accept="image/*"; inp.capture="environment"; inp.style.display="none"; document.body.appendChild(inp);
+    inp.onchange=async e=>{
+      const file=e.target.files[0]; if(!file)return;
+      document.body.removeChild(inp);
+      const reader=new FileReader();
+      reader.onload=async ev=>{
+        const id=parseInt(wineId);
+        const b64=ev.target.result;
+        session.wines=session.wines.map(w=>w.id!==id?w:{...w,photos:{...(w.photos||{}),[side]:b64}});
         await saveSession(session);
         App.renderTabResults();
-        showToast("Foto adicionada!");
+        // Run AI identification on front photo
+        if(runAI && side==="Frente") {
+          showToast("🔍 Analisando rótulo com IA…");
+          await App.identifyWineFromPhoto(id, b64);
+        } else {
+          showToast("Foto adicionada!");
+        }
       };
       reader.readAsDataURL(file);
-      document.body.removeChild(inp);
     };
     inp.click();
   },
 
-  // ── Firebase guide ────────────────────────────────────────────
-  showFirebaseGuide()  { document.getElementById("firebase-modal").classList.add("open"); },
-  closeFirebaseGuide() { document.getElementById("firebase-modal").classList.remove("open"); },
+  async identifyWineFromPhoto(wineId, imageDataUrl) {
+    try {
+      const base64 = imageDataUrl.split(",")[1];
+      const mediaType = imageDataUrl.split(";")[0].split(":")[1];
 
-  // ── Guest / voter ─────────────────────────────────────────────
-  renderGuest() {
-    if (!session) return;
-    const meta = metaHtml(session);
-    document.getElementById("guest-info").innerHTML = `
-      <div class="section-label">Degustação Às Cegas</div>
-      ${meta}
-      <p class="text-muted text-sm mt8">${session.wines.length} vinhos para ordenar</p>
-    `;
+      const text = await callClaude([{
+        role:"user",
+        content:[
+          {
+            type:"image",
+            source:{ type:"base64", media_type:mediaType, data:base64 }
+          },
+          {
+            type:"text",
+            text:`Você é um sommelier especialista. Analise este rótulo de vinho e responda SOMENTE em JSON válido, sem texto extra, sem markdown. Extraia as informações visíveis no rótulo:
+{
+  "name": "nome completo do vinho",
+  "producer": "nome do produtor/quinta/château",
+  "region": "região/denominação de origem",
+  "vintage": "ano da safra (apenas números)",
+  "grape": "uva(s) principal(is) se visível",
+  "alcohol": "teor alcoólico se visível",
+  "country": "país de origem",
+  "info": "descrição rica de 3-4 linhas sobre este vinho: características organolépticas típicas, história do produtor, harmonização e curiosidades. Tom apaixonado de sommelier."
+}
+Se algum campo não for visível no rótulo, use string vazia "". Responda APENAS o JSON.`
+          }
+        ]
+      }], null, 600);
 
-    const pending = session.participants.filter(p => !p.voted);
-    const voted   = session.participants.filter(p =>  p.voted);
+      let data = {};
+      try {
+        const clean = text.replace(/```json|```/g,"").trim();
+        data = JSON.parse(clean);
+      } catch(e) { showToast("IA não identificou o vinho. Preencha manualmente."); return; }
 
-    const nameList = document.getElementById("name-list");
-    nameList.innerHTML = pending.map(p => `
-      <button class="name-btn${selectedNameId===p.id?" selected":""}" onclick="App.selectName('${p.id}')">
-        <div class="name-circle">${selectedNameId===p.id?"✓":"○"}</div>
-        <span class="name-text">${p.name}</span>
-      </button>
-    `).join("");
+      // Auto-fill wine details
+      const wine = session.wines.find(w=>w.id===wineId);
+      const existing = wine.details || {};
+      const details = {
+        name:     data.name     || existing.name     || "",
+        producer: data.producer || existing.producer || "",
+        region:   data.region   || existing.region   || "",
+        vintage:  data.vintage  || existing.vintage  || "",
+        grape:    data.grape    || existing.grape    || "",
+        alcohol:  data.alcohol  || existing.alcohol  || "",
+        price:    existing.price || "",
+        notes:    existing.notes || "",
+        owner:    existing.owner || "",
+      };
+      const aiInfo = data.info || wine.aiInfo || null;
 
-    document.getElementById("all-voted-msg").style.display = pending.length===0?"block":"none";
-    document.getElementById("enter-btn").disabled = !selectedNameId || pending.length===0;
+      session.wines = session.wines.map(w=>w.id===wineId?{...w,details,aiInfo}:w);
+      await saveSession(session);
+      App.renderTabResults();
+      showToast(data.name ? `✓ Identificado: ${data.name}` : "Rótulo analisado — verifique os dados");
+    } catch(e) {
+      showToast("Erro ao analisar rótulo.");
+    }
+  },
 
-    const votedWrap = document.getElementById("voted-list-wrap");
-    if (voted.length > 0) {
-      votedWrap.style.display = "block";
-      document.getElementById("voted-list").innerHTML = voted.map(p =>
-        `<span class="voted-pill">✓ ${p.name}</span>`).join("");
+  // ── Wine modal ────────────────────────────────────────────────
+  async openWineModal(wineId) {
+    editingWineId=parseInt(wineId);
+    const wine=session.wines.find(w=>w.id===editingWineId);
+    const d=wine.details||{};
+
+    // Helper to fill form fields from a details object
+    const fillForm=(det)=>{
+      document.getElementById("wm-name").value=det.name||"";
+      document.getElementById("wm-producer").value=det.producer||"";
+      document.getElementById("wm-region").value=det.region||"";
+      document.getElementById("wm-vintage").value=det.vintage||"";
+      document.getElementById("wm-grape").value=det.grape||"";
+      document.getElementById("wm-alcohol").value=det.alcohol||"";
+      document.getElementById("wm-price").value=det.price||"";
+      document.getElementById("wm-notes").value=det.notes||"";
+      const sel=document.getElementById("wm-owner");
+      sel.innerHTML=`<option value="">— Selecione —</option>`+session.participants.map(p=>`<option value="${p.name}"${det.owner===p.name?" selected":""}>${p.name}</option>`).join("");
+    };
+
+    document.getElementById("wine-modal-title").textContent=`Vinho ${wine.label}`;
+    fillForm(d);
+    document.getElementById("wine-modal").classList.add("open");
+
+    // If there's a front photo and the wine hasn't been identified yet, run AI now
+    const hasFrontPhoto = !!wine.photos?.Frente;
+    const alreadyIdentified = !!d.name;
+
+    if (hasFrontPhoto && !alreadyIdentified) {
+      // Show loading state inside modal
+      const status=document.getElementById("wm-ai-status");
+      status.textContent="🔍 Analisando rótulo com IA…";
+      status.style.display="block";
+
+      try {
+        const b64=wine.photos.Frente.split(",")[1];
+        const mediaType=wine.photos.Frente.split(";")[0].split(":")[1];
+
+        const text = await callClaude([{
+          role:"user",
+          content:[
+            { type:"image", source:{ type:"base64", media_type:mediaType, data:b64 } },
+            { type:"text", text:`Analise este rótulo de vinho e responda SOMENTE em JSON válido, sem texto extra nem markdown:
+{
+  "name": "nome completo do vinho",
+  "producer": "produtor/quinta/château",
+  "region": "região/denominação de origem",
+  "vintage": "ano da safra (só números)",
+  "grape": "uva(s) principal(is) se visível",
+  "alcohol": "teor alcoólico se visível",
+  "info": "descrição rica de 3-4 linhas: características organolépticas típicas, história do produtor, harmonização e curiosidades. Tom apaixonado de sommelier."
+}
+Campos não visíveis = string vazia. Responda APENAS o JSON.` }
+          ]
+        }], null, 600);
+
+        let data={};
+        try { data=JSON.parse(text.replace(/\`\`\`json|\`\`\`/g,"").trim()); } catch(e){}
+
+        if (data.name) {
+          const merged={
+            name:     data.name     || d.name     || "",
+            producer: data.producer || d.producer || "",
+            region:   data.region   || d.region   || "",
+            vintage:  data.vintage  || d.vintage  || "",
+            grape:    data.grape    || d.grape    || "",
+            alcohol:  data.alcohol  || d.alcohol  || "",
+            price:    d.price || "",
+            notes:    d.notes || "",
+            owner:    d.owner || "",
+          };
+          // Save to session immediately
+          const aiInfo = data.info || wine.aiInfo || null;
+          session.wines=session.wines.map(w=>w.id===editingWineId?{...w,details:merged,aiInfo}:w);
+          await saveSession(session);
+          fillForm(merged);
+          status.textContent=`✓ Identificado: ${data.name}`;
+          status.style.background="rgba(76,175,80,0.1)";
+          status.style.borderColor="rgba(76,175,80,0.3)";
+          status.style.color="#81c784";
+          setTimeout(()=>{ status.style.display="none"; },3000);
+        } else {
+          status.textContent="Rótulo analisado — confira e complete os campos";
+          setTimeout(()=>{ status.style.display="none"; },3000);
+        }
+      } catch(e) {
+        status.textContent="Erro ao analisar rótulo. Preencha manualmente.";
+        setTimeout(()=>{ status.style.display="none"; },3000);
+      }
     } else {
-      votedWrap.style.display = "none";
+      document.getElementById("wm-ai-status").style.display="none";
+      // If already identified but no photo, show a hint
+      if (!hasFrontPhoto && !alreadyIdentified) {
+        const status=document.getElementById("wm-ai-status");
+        status.textContent="💡 Dica: adicione a foto da frente do rótulo para identificação automática pela IA";
+        status.style.display="block";
+        status.style.background="rgba(201,168,76,0.06)";
+        status.style.borderColor="rgba(201,168,76,0.2)";
+        status.style.color="var(--gold)";
+      }
+    }
+  },
+  closeWineModal(){document.getElementById("wine-modal").classList.remove("open");editingWineId=null;},
+  async saveWineDetails() {
+    if(!editingWineId)return;
+    const details={
+      name:document.getElementById("wm-name").value.trim(),
+      owner:document.getElementById("wm-owner").value,
+      producer:document.getElementById("wm-producer").value.trim(),
+      region:document.getElementById("wm-region").value.trim(),
+      vintage:document.getElementById("wm-vintage").value.trim(),
+      grape:document.getElementById("wm-grape").value.trim(),
+      alcohol:document.getElementById("wm-alcohol").value.trim(),
+      price:document.getElementById("wm-price").value.trim(),
+      notes:document.getElementById("wm-notes").value.trim()
+    };
+    session.wines=session.wines.map(w=>w.id===editingWineId?{...w,details}:w);
+    await saveSession(session); App.closeWineModal(); App.renderTabResults(); showToast("Detalhes salvos!");
+  },
+
+  // ── Report generation ─────────────────────────────────────────
+  async generateReport() {
+    const btn=document.getElementById("btn-report");
+    if(btn){btn.textContent="⏳ Gerando relatório…";btn.disabled=true;}
+
+    try {
+      // Build data context for AI
+      const ranked=[...session.wines].sort((a,b)=>b.score-a.score);
+      const winesCtx=ranked.map((w,i)=>{
+        const d=w.details||{};
+        const votes=session.participants.filter(p=>p.voted).map(p=>{
+          const v=p.votes.find(x=>x.wineId===w.id);
+          return `${p.name}: ${v?v.score:"ausente"}`;
+        }).join(", ");
+        return `Vinho ${w.label} (${i+1}º lugar, ${w.score} pts): ${d.name||"não identificado"} | Produtor: ${d.producer||"?"} | Região: ${d.region||"?"} | Safra: ${d.vintage||"?"} | Uvas: ${d.grape||"?"} | Trouxe: ${d.owner||"?"} | Votos individuais: ${votes}`;
+      }).join("\n");
+
+      const partCtx=session.participants.filter(p=>p.voted).map(p=>{
+        const votesSorted=[...p.votes].sort((a,b)=>b.score-a.score);
+        const top=votesSorted.slice(0,2).map(v=>{
+          const w=session.wines.find(x=>x.id===v.wineId);
+          return `Vinho ${w?.label} (${v.score} pts)`;
+        }).join(", ");
+        return `${p.name}: preferiu ${top}`;
+      }).join("\n");
+
+      const prompt=`Você é um sommelier e analista sensorial. Com base nos dados desta sessão de degustação às cegas da Confraria Aldeia Wine Group, gere um relatório completo e apaixonado em português.
+
+DADOS DA SESSÃO:
+Data: ${fmtDate(session.sessionDate)||"não informada"}
+Tema: ${session.theme||"livre"}
+Anfitrião: ${session.host||"não informado"}
+Prato: ${session.mainDish||"não informado"}
+
+RESULTADOS DOS VINHOS:
+${winesCtx}
+
+PREFERÊNCIAS DOS DEGUSTADORES:
+${partCtx}
+
+Gere um relatório estruturado com as seguintes seções. Use linguagem elegante e apaixonada, como um sommelier experiente:
+
+1. RESUMO DA SESSÃO (2-3 parágrafos sobre o evento, tema e destaque geral)
+2. ANÁLISE DE CADA VINHO (para cada vinho ranqueado: análise dos votos recebidos, consenso ou divergência do grupo, perfil sensorial esperado, por que pode ter ficado nessa posição)
+3. PADRÃO DE VOTAÇÃO DO GRUPO (análise do comportamento coletivo: o grupo preferiu vinhos de qual estilo? houve consenso ou divisão? qual vinho gerou mais unanimidade ou mais polêmica?)
+4. PERFIL DE CADA DEGUSTADOR (para cada participante que votou: baseado em suas escolhas, qual é seu perfil sensorial? prefere vinhos encorpados ou elegantes? tânicos ou suaves? tradicionais ou modernos? Uma frase de perfil marcante para cada um)
+5. CONCLUSÃO (reflexão final sobre a sessão e o vinho vencedor)
+
+Seja específico, cite os vinhos e participantes pelo nome. Tom refinado e apaixonado.`;
+
+      const reportText = await callClaude([{role:"user",content:prompt}], null, 1500);
+
+      // Parse and render report
+      App.renderReport(reportText, ranked);
+      session.status="closed";
+      session.report=reportText;
+      await saveSession(session);
+    } catch(e) {
+      showToast("Erro ao gerar relatório. Tente novamente.");
+      if(btn){btn.textContent="📊 Gerar Relatório & Encerrar";btn.disabled=false;}
     }
   },
 
-  selectName(id) {
-    selectedNameId = id;
-    App.renderGuest();
-    document.getElementById("name-error").style.display = "none";
-  },
+  renderReport(text, ranked) {
+    const medals=["🥇","🥈","🥉"];
+    const dateStr=fmtDate(session.sessionDate)||new Date().toLocaleDateString("pt-BR");
 
-  enterAsVoter() {
-    if (!selectedNameId) {
-      document.getElementById("name-error").style.display = "block"; return;
-    }
-    activeParticipantId = selectedNameId;
-    App.renderVoter();
-    showPage("pg-voter");
-  },
+    // Format text: convert markdown-style headers
+    const formatted=text
+      .replace(/^#{1,3}\s*(.+)$/gm,(_,t)=>`<h3 style="font-family:'Cinzel',serif;font-size:13px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">${t}</h3>`)
+      .replace(/\*\*(.+?)\*\*/g,"<strong style='color:var(--gold2)'>$1</strong>")
+      .replace(/\n\n/g,"</p><p>")
+      .replace(/\n/g,"<br>");
 
-  renderVoter() {
-    const p = session.participants.find(x => x.id === activeParticipantId);
-    const meta = metaHtml(session);
-    document.getElementById("voter-info").innerHTML = `
-      <p style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;color:var(--gold);opacity:.8">Degustação Às Cegas</p>
-      ${meta}
-      <p class="text-muted text-sm mt8">Olá, <strong style="color:var(--cream)">${p.name}</strong> — ordene os vinhos do melhor para o pior.</p>
-    `;
+    // Wine podium
+    const podium=ranked.slice(0,3).map((w,i)=>`
+      <div style="text-align:center;flex:1">
+        <div style="font-size:${i===0?'36px':'28px'}">${medals[i]}</div>
+        <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--gold);margin:6px 0">Vinho ${w.label}</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:${i===0?'17px':'14px'};color:var(--cream)">${w.details?.name||"—"}</div>
+        <div style="font-family:'Cinzel',serif;font-size:18px;color:var(--gold2);margin-top:4px">${w.score} pts</div>
+      </div>`).join("");
 
-    // Build order state on first render
-    if (!App._voteOrder || App._voteOrder.length !== session.wines.length) {
-      App._voteOrder = session.wines.map(w => w.id);
-    }
-    App.renderWineOrder();
+    // Wine photos for report
+    const winePhotos=ranked.map(w=>{
+      const photos=[];
+      if(w.photos?.Frente) photos.push(`<img src="${w.photos.Frente}" style="flex:1;max-height:100px;object-fit:cover;border-radius:6px;border:1px solid var(--border)">`);
+      if(w.photos?.Verso)  photos.push(`<img src="${w.photos.Verso}"  style="flex:1;max-height:100px;object-fit:cover;border-radius:6px;border:1px solid var(--border)">`);
+      if(!photos.length) return "";
+      return `<div style="margin-bottom:16px"><p style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--gold);opacity:.8;margin-bottom:8px">VINHO ${w.label}${w.details?.name?" — "+w.details.name:""}</p><div style="display:flex;gap:8px">${photos.join("")}</div></div>`;
+    }).filter(Boolean).join("");
 
-    const n = session.wines.length;
-    document.getElementById("score-legend").textContent =
-      `1º = ${getScore(0,n)} pts · 2º = ${getScore(1,n)} pts · 3º = ${getScore(2,n)} pts${n>3?" · …":""}`;
-  },
-
-  renderWineOrder() {
-    const container = document.getElementById("wine-order");
-    const n = session.wines.length;
-    container.innerHTML = App._voteOrder.map((wineId, rank) => {
-      const wine = session.wines.find(w => w.id === wineId);
-      const pts = getScore(rank, n);
-      return `
-        <div class="wine-row" id="wr-${wineId}"
-          draggable="true"
-          data-id="${wineId}"
-          ondragstart="App.dragStart(event,${rank})"
-          ondragover="App.dragOver(event)"
-          ondrop="App.dragDrop(event,${rank})"
-          ondragend="App.dragEnd(event)"
-        >
-          <div class="rank-circle">${rank+1}</div>
-          <span class="wine-name">Vinho ${wine.label}</span>
-          <div class="wine-arrows">
-            <button class="arrow-btn" onclick="App.moveWine(${rank},-1)" ${rank===0?"disabled":""}>▲</button>
-            <button class="arrow-btn" onclick="App.moveWine(${rank},1)"  ${rank===n-1?"disabled":""}>▼</button>
-          </div>
-          <span class="wine-pts">${pts} pts</span>
+    document.getElementById("report-body").innerHTML=`
+      <div style="text-align:center;padding:20px 0 28px;border-bottom:1px solid var(--border);margin-bottom:24px">
+        <p style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:5px;color:var(--gold);opacity:.7;margin-bottom:10px">CONFRARIA ✦ ALDEIA WINE GROUP</p>
+        <h1>Relatório de Degustação</h1>
+        <div class="report-meta" style="justify-content:center;margin-top:10px">
+          ${session.sessionDate?`<span>📅 ${dateStr}</span>`:""}
+          ${session.host?`<span>🏠 ${session.host}</span>`:""}
+          ${session.theme?`<span>🍇 ${session.theme}</span>`:""}
+          ${session.mainDish?`<span>🍽️ ${session.mainDish}</span>`:""}
         </div>
-      `;
+      </div>
+
+      <div class="report-section" style="margin-bottom:24px">
+        <div style="display:flex;gap:12px;justify-content:center">${podium}</div>
+      </div>
+
+      ${winePhotos?`<div class="report-section"><h2 style="margin-top:0">Rótulos</h2>${winePhotos}</div>`:""}
+
+      <div class="report-section">
+        <p>${formatted}</p>
+      </div>
+
+      <div style="margin-top:28px;padding-top:20px;border-top:1px solid var(--border);text-align:center">
+        <p style="font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--muted);font-style:italic">In vino veritas · Aldeia Wine Group · ${dateStr}</p>
+        <button class="report-print-btn" onclick="window.print()">🖨️ Imprimir / Salvar como PDF</button>
+      </div>`;
+
+    document.getElementById("report-overlay").style.display="block";
+    document.getElementById("report-overlay").scrollTop=0;
+  },
+
+  closeReport() { document.getElementById("report-overlay").style.display="none"; },
+
+  // ── Finalize ──────────────────────────────────────────────────
+  tryFinalize() {
+    const v=session.participants.filter(p=>p.voted).length,t=session.participants.length;
+    if(v<t){
+      document.getElementById("confirm-msg").textContent=`Ainda há ${t-v} participante(s) sem voto. Deseja apurar mesmo assim?`;
+      document.getElementById("confirm-ok").onclick=()=>{App.closeConfirm();App.finalize();};
+      document.getElementById("confirm-modal").classList.add("open");
+    } else App.finalize();
+  },
+  closeConfirm(){document.getElementById("confirm-modal").classList.remove("open");},
+
+  async finalize() {
+    const scores={};
+    session.wines.forEach(w=>{scores[w.id]={total:0,count:0};});
+    session.participants.forEach(p=>{if(!p.voted)return;p.votes.forEach(v=>{scores[v.wineId].total+=v.score;scores[v.wineId].count++;});});
+    session.wines=session.wines.map(w=>({...w,score:scores[w.id].total,voteCount:scores[w.id].count}));
+    session.status="done";
+    await saveSession(session);
+    App.renderAdmin(); App.switchTab("results");
+  },
+
+  async newSession(){await clearSession();session=null;showPage("pg-setup");App.updateParticipantFields();App.updateScoreFields();if(pollTimer)clearInterval(pollTimer);},
+
+  copyLink(){
+    const url=window.location.href;
+    if(navigator.share){navigator.share({title:"Aldeia Wine Group",url}).catch(()=>App._copyToClipboard(url));}
+    else App._copyToClipboard(url);
+  },
+  _copyToClipboard(text){
+    if(navigator.clipboard?.writeText){navigator.clipboard.writeText(text).then(()=>showToast("Link copiado!"));}
+    else{const ta=document.createElement("textarea");ta.value=text;ta.style.cssText="position:fixed;opacity:0";document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);showToast("Link copiado!");}
+  },
+
+  // ── Guest ─────────────────────────────────────────────────────
+  renderGuest(){
+    if(!session)return;
+    document.getElementById("guest-info").innerHTML=`<div class="section-label">Degustação Às Cegas</div>${metaHtml(session)}<p class="text-muted text-sm mt8">${session.wines.length} vinhos para ordenar</p>`;
+    const pending=session.participants.filter(p=>!p.voted);
+    const voted=session.participants.filter(p=>p.voted);
+    document.getElementById("name-list").innerHTML=pending.map(p=>`<button class="name-btn${selectedNameId===p.id?" selected":""}" onclick="App.selectName('${p.id}')"><div class="name-circle">${selectedNameId===p.id?"✓":"○"}</div><span class="name-text">${p.name}</span></button>`).join("");
+    document.getElementById("all-voted-msg").style.display=pending.length===0?"block":"none";
+    document.getElementById("enter-btn").disabled=!selectedNameId||pending.length===0;
+    const vw=document.getElementById("voted-list-wrap");
+    if(voted.length>0){vw.style.display="block";document.getElementById("voted-list").innerHTML=voted.map(p=>`<span class="voted-pill">✓ ${p.name}</span>`).join("");}
+    else vw.style.display="none";
+  },
+  selectName(id){selectedNameId=id;App.renderGuest();document.getElementById("name-error").style.display="none";},
+  enterAsVoter(){if(!selectedNameId){document.getElementById("name-error").style.display="block";return;}activeParticipantId=selectedNameId;App.renderVoter();showPage("pg-voter");},
+
+  // ── Voter ─────────────────────────────────────────────────────
+  renderVoter(){
+    const p=session.participants.find(x=>x.id===activeParticipantId);
+    document.getElementById("voter-info").innerHTML=`<p style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;color:var(--gold);opacity:.8">Degustação Às Cegas</p>${metaHtml(session)}<p class="text-muted text-sm mt8">Olá, <strong style="color:var(--cream)">${p.name}</strong> — ordene os vinhos do melhor para o pior.</p>`;
+    if(!App._voteOrder||App._voteOrder.length!==session.wines.length) App._voteOrder=session.wines.map(w=>w.id);
+    App.renderWineOrder();
+    const sc=session.scores||[];
+    document.getElementById("score-legend").textContent=`1º = ${sc[0]||20} pts · 2º = ${sc[1]||18} pts · 3º = ${sc[2]||16} pts${session.wines.length>3?" · …":""}`;
+  },
+  renderWineOrder(){
+    const container=document.getElementById("wine-order");
+    const n=session.wines.length; const sc=session.scores||[];
+    container.innerHTML=App._voteOrder.map((wineId,rank)=>{
+      const wine=session.wines.find(w=>w.id===wineId);
+      const pts=sc[rank]!==undefined?sc[rank]:Math.max(1,20-(rank*2));
+      return `<div class="wine-row" id="wr-${wineId}" draggable="true" data-id="${wineId}" ondragstart="App.dragStart(event,${rank})" ondragover="App.dragOver(event)" ondrop="App.dragDrop(event,${rank})" ondragend="App.dragEnd(event)"><div class="rank-circle">${rank+1}</div><span class="wine-name">Vinho ${wine.label}</span><div class="wine-arrows"><button class="arrow-btn" onclick="App.moveWine(${rank},-1)" ${rank===0?"disabled":""}>▲</button><button class="arrow-btn" onclick="App.moveWine(${rank},1)" ${rank===n-1?"disabled":""}>▼</button></div><span class="wine-pts">${pts} pts</span></div>`;
     }).join("");
-
-    // Touch drag support
-    container.querySelectorAll(".wine-row").forEach(row => {
-      row.addEventListener("touchstart", App.touchStart, {passive:false});
-      row.addEventListener("touchmove",  App.touchMove,  {passive:false});
-      row.addEventListener("touchend",   App.touchEnd,   {passive:false});
+    container.querySelectorAll(".wine-row").forEach(row=>{
+      row.addEventListener("touchstart",App.touchStart,{passive:false});
+      row.addEventListener("touchmove",App.touchMove,{passive:false});
+      row.addEventListener("touchend",App.touchEnd,{passive:false});
     });
   },
+  moveWine(rank,dir){const nr=rank+dir;if(nr<0||nr>=App._voteOrder.length)return;[App._voteOrder[rank],App._voteOrder[nr]]=[App._voteOrder[nr],App._voteOrder[rank]];App.renderWineOrder();},
+  dragStart(e,rank){dragSrcIdx=rank;e.currentTarget.classList.add("dragging");},
+  dragOver(e){e.preventDefault();},
+  dragDrop(e,toRank){e.preventDefault();if(dragSrcIdx===null||dragSrcIdx===toRank)return;const arr=[...App._voteOrder];const[m]=arr.splice(dragSrcIdx,1);arr.splice(toRank,0,m);App._voteOrder=arr;dragSrcIdx=null;App.renderWineOrder();},
+  dragEnd(e){e.currentTarget.classList.remove("dragging");dragSrcIdx=null;},
+  touchStart(e){const row=e.currentTarget;touchDragData={srcId:parseInt(row.dataset.id),startY:e.touches[0].clientY};row.style.opacity="0.5";},
+  touchMove(e){e.preventDefault();if(!touchDragData)return;const y=e.touches[0].clientY;const rows=Array.from(document.getElementById("wine-order").querySelectorAll(".wine-row"));let tr=-1;rows.forEach((r,i)=>{const rc=r.getBoundingClientRect();if(y>=rc.top&&y<=rc.bottom)tr=i;});if(tr>=0)touchDragData.targetRank=tr;},
+  touchEnd(e){if(!touchDragData)return;const srcId=touchDragData.srcId;const toRank=touchDragData.targetRank??-1;e.currentTarget.style.opacity="";touchDragData=null;if(toRank<0)return;const srcRank=App._voteOrder.indexOf(srcId);if(srcRank===toRank)return;const arr=[...App._voteOrder];const[m]=arr.splice(srcRank,1);arr.splice(toRank,0,m);App._voteOrder=arr;App.renderWineOrder();},
 
-  moveWine(rank, dir) {
-    const newRank = rank + dir;
-    if (newRank < 0 || newRank >= App._voteOrder.length) return;
-    [App._voteOrder[rank], App._voteOrder[newRank]] = [App._voteOrder[newRank], App._voteOrder[rank]];
-    App.renderWineOrder();
-  },
-
-  // Mouse drag
-  dragStart(e, rank) { dragSrcIdx = rank; e.currentTarget.classList.add("dragging"); },
-  dragOver(e)  { e.preventDefault(); },
-  dragDrop(e, toRank) {
-    e.preventDefault();
-    if (dragSrcIdx === null || dragSrcIdx === toRank) return;
-    const arr = [...App._voteOrder];
-    const [moved] = arr.splice(dragSrcIdx, 1);
-    arr.splice(toRank, 0, moved);
-    App._voteOrder = arr;
-    dragSrcIdx = null;
-    App.renderWineOrder();
-  },
-  dragEnd(e) { e.currentTarget.classList.remove("dragging"); dragSrcIdx = null; },
-
-  // Touch drag (mobile)
-  touchStart(e) {
-    const row = e.currentTarget;
-    const rect = row.getBoundingClientRect();
-    touchDragData = {
-      srcId: parseInt(row.dataset.id),
-      startY: e.touches[0].clientY,
-      offsetY: e.touches[0].clientY - rect.top,
-    };
-    row.style.opacity = "0.5";
-  },
-  touchMove(e) {
-    e.preventDefault();
-    if (!touchDragData) return;
-    const y = e.touches[0].clientY;
-    const container = document.getElementById("wine-order");
-    const rows = Array.from(container.querySelectorAll(".wine-row"));
-    let targetRank = -1;
-    rows.forEach((r, i) => {
-      const rect = r.getBoundingClientRect();
-      if (y >= rect.top && y <= rect.bottom) targetRank = i;
-    });
-    if (targetRank >= 0) touchDragData.targetRank = targetRank;
-  },
-  touchEnd(e) {
-    if (!touchDragData) return;
-    const srcId = touchDragData.srcId;
-    const toRank = touchDragData.targetRank ?? -1;
-    e.currentTarget.style.opacity = "";
-    touchDragData = null;
-    if (toRank < 0) return;
-    const srcRank = App._voteOrder.indexOf(srcId);
-    if (srcRank === toRank) return;
-    const arr = [...App._voteOrder];
-    const [moved] = arr.splice(srcRank, 1);
-    arr.splice(toRank, 0, moved);
-    App._voteOrder = arr;
-    App.renderWineOrder();
-  },
-
-  async submitVote() {
-    const n = session.wines.length;
-    const votes = App._voteOrder.map((wineId, rank) => ({ wineId, score: getScore(rank, n) }));
-    // Load latest session from storage to avoid overwriting other votes
-    const latest = await loadSession();
-    const base = latest || session;
-    const updated = {
-      ...base,
-      participants: base.participants.map(p =>
-        p.id === activeParticipantId ? {...p, voted:true, votes} : p
-      )
-    };
-    session = updated;
-    await saveSession(updated);
-    App._voteOrder = null;
-
-    const p = session.participants.find(x => x.id === activeParticipantId);
-    document.getElementById("thanks-name").innerHTML =
-      `Obrigado, <strong style="color:var(--cream)">${p.name}</strong>!`;
+  async submitVote(){
+    const sc=session.scores||[];
+    const votes=App._voteOrder.map((wineId,rank)=>({wineId,score:sc[rank]!==undefined?sc[rank]:Math.max(1,20-(rank*2))}));
+    const latest=await loadSession();
+    const base=latest||session;
+    const updated={...base,participants:base.participants.map(p=>p.id===activeParticipantId?{...p,voted:true,votes}:p)};
+    session=updated; await saveSession(updated); App._voteOrder=null;
+    const p=session.participants.find(x=>x.id===activeParticipantId);
+    document.getElementById("thanks-name").innerHTML=`Obrigado, <strong style="color:var(--cream)">${p.name}</strong>!`;
     showPage("pg-thanks");
-
-    // Auto-return to home after 4s
-    setTimeout(() => { App.goHome(); }, 4000);
+    setTimeout(()=>App.goHome(),4000);
   }
 };
 
-// Boot
-window.addEventListener("DOMContentLoaded", () => App.init());
+window.addEventListener("DOMContentLoaded",()=>App.init());
 </script>
 </body>
 </html>
