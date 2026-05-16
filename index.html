@@ -530,9 +530,7 @@ function compressForStorage(dataUrl) { return compressImage(dataUrl, 1200, 0.82)
 const WORKER_URL = "https://aldeia-wine-proxy.romulopsilva.workers.dev";
 
 async function callClaude(messages, system, max_tokens=800) {
-  if (!WORKER_URL || WORKER_URL === "https://aldeia-wine-proxy.romulopsilva.workers.dev") {
-    throw new Error("URL do Worker não configurada. Siga o guia de configuração.");
-  }
+  // Worker URL configured
   const body = { model:"claude-sonnet-4-20250514", max_tokens, messages };
   if (system) body.system = system;
   const res = await fetch(WORKER_URL, {
@@ -540,9 +538,11 @@ async function callClaude(messages, system, max_tokens=800) {
     headers:{"Content-Type":"application/json"},
     body: JSON.stringify(body)
   });
-  if (!res.ok) throw new Error(`Worker retornou ${res.status}`);
-  const data = await res.json();
-  if (data.error) throw new Error(data.error);
+  const raw = await res.text();
+  if (!res.ok) throw new Error(`Worker ${res.status}: ${raw.slice(0,200)}`);
+  let data;
+  try { data = JSON.parse(raw); } catch(e) { throw new Error("Resposta inválida do Worker: " + raw.slice(0,100)); }
+  if (data.error) throw new Error(JSON.stringify(data.error).slice(0,200));
   return data.content?.[0]?.text || "";
 }
 
@@ -642,7 +642,7 @@ const App = {
           content:`Gere APENAS o corpo de um e-mail simples (sem HTML) em português informando que o código de acesso do organizador do app Aldeia Wine Group é: ${pin}. Mencione que é referente à ${date}. Máximo 5 linhas.`
         }]
       };
-      const wurl=typeof WORKER_URL!=="undefined"?WORKER_URL:"https://aldeia-wine-proxy.romulopsilva.workers.dev";
+      const wurl=WORKER_URL;
       const res=await fetch(wurl,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
       const data=await res.json();
       const emailBody=data.content?.[0]?.text||`Seu código de acesso é: ${pin}`;
