@@ -11,44 +11,33 @@
 
 <!-- Firebase -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-  // ── Firebase config ── 
-  // INSTRUÇÃO: Substitua estes valores pelos do seu projeto Firebase (gratuito)
-  // Veja o guia de configuração incluído abaixo no HTML
-  <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
+(async () => {
+  /* ── Cole aqui o seu firebaseConfig ── */
   const firebaseConfig = {
-    apiKey: "AIzaSyB2rZimIUvgHHeCvt-no8BPHn1PPBCFzGI",
-    authDomain: "aldeia-wine.firebaseapp.com",
-    databaseURL: "https://aldeia-wine-default-rtdb.firebaseio.com",
-    projectId: "aldeia-wine",
-    storageBucket: "aldeia-wine.firebasestorage.app",
-    messagingSenderId: "967767335111",
-    appId: "1:967767335111:web:6a784ca8dca3671e991ee2"
+    apiKey: "COLE_AQUI",
+    authDomain: "COLE_AQUI",
+    databaseURL: "COLE_AQUI",
+    projectId: "COLE_AQUI",
+    storageBucket: "COLE_AQUI",
+    messagingSenderId: "COLE_AQUI",
+    appId: "COLE_AQUI"
   };
+  /* ───────────────────────────────────── */
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-</script>
-
-  let db = null;
-  let firebaseOk = false;
-
+  if (firebaseConfig.apiKey === "COLE_AQUI") {
+    window._firebase = { ok: false };
+    return;
+  }
   try {
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
+    const { getDatabase, ref, set, get, onValue, remove } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
     const app = initializeApp(firebaseConfig);
-    db = getDatabase(app);
-    firebaseOk = firebaseConfig.apiKey !== "COLE_AQUI";
-  } catch(e) {}
-
-  // Expose to global
-  window._firebase = { db, ref, set, get, onValue, remove, ok: firebaseOk };
+    const db  = getDatabase(app);
+    window._firebase = { db, ref, set, get, onValue, remove, ok: true };
+  } catch(e) {
+    window._firebase = { ok: false };
+  }
+})();
 </script>
 
 <style>
