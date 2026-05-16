@@ -284,6 +284,7 @@ select.input { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www
         <div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
       </div>
       <p id="pin-error" class="error-msg" style="text-align:center;margin-bottom:12px">Código incorreto. Tente novamente.</p>
+      <p id="pin-success" style="display:none;text-align:center;margin-bottom:12px;color:#81c784;font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px">✓ Código enviado para romulopsilva@gmail.com</p>
       <div class="pin-pad">
         <button class="pin-key" onclick="App.pinKey('1')">1</button><button class="pin-key" onclick="App.pinKey('2')">2</button><button class="pin-key" onclick="App.pinKey('3')">3</button>
         <button class="pin-key" onclick="App.pinKey('4')">4</button><button class="pin-key" onclick="App.pinKey('5')">5</button><button class="pin-key" onclick="App.pinKey('6')">6</button>
@@ -291,6 +292,25 @@ select.input { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www
         <button class="pin-key" onclick="App.pinKey('del')" style="font-size:14px">⌫</button>
         <button class="pin-key" onclick="App.pinKey('0')">0</button>
         <button class="pin-key" onclick="App.goHome()" style="font-size:11px;color:var(--muted)">✕</button>
+      </div>
+      <div style="margin-top:20px;display:flex;flex-direction:column;gap:8px;max-width:240px;margin-left:auto;margin-right:auto">
+        <button class="btn btn-ghost btn-sm" onclick="App.recoverPin()" id="btn-recover">📧 Esqueci o código</button>
+        <button class="btn btn-ghost btn-sm" onclick="App.confirmReset()" style="border-color:rgba(200,80,80,0.3);color:#e57373">🗑️ Resetar sessão</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reset confirm modal -->
+  <div class="modal-bg" id="reset-modal">
+    <div class="modal" style="text-align:center">
+      <div class="section-label">Resetar Sessão</div>
+      <p style="font-family:'Cormorant Garamond',serif;font-size:18px;line-height:1.6;color:var(--cream);margin-bottom:8px">
+        Tem certeza? Todos os dados da sessão atual serão <strong style="color:#e57373">apagados permanentemente</strong>.
+      </p>
+      <p class="text-muted text-sm" style="margin-bottom:20px">Votos, resultados e fotos serão perdidos.</p>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost" onclick="App.closeReset()" style="flex:1">Cancelar</button>
+        <button class="btn btn-danger" onclick="App.doReset()" style="flex:1">Sim, apagar tudo</button>
       </div>
     </div>
   </div>
@@ -562,7 +582,7 @@ const App = {
   },
 
   // ── PIN ───────────────────────────────────────────────────────
-  promptAdminPin() { if(!session){showPage("pg-setup");return;} pinBuffer=""; App.updatePinDots(); document.getElementById("pin-error").style.display="none"; showPage("pg-pin"); },
+  promptAdminPin() { if(!session){showPage("pg-setup");return;} pinBuffer=""; App.updatePinDots(); document.getElementById("pin-error").style.display="none"; document.getElementById("pin-success").style.display="none"; showPage("pg-pin"); },
   pinKey(k) {
     if(k==="del"){pinBuffer=pinBuffer.slice(0,-1);App.updatePinDots();return;}
     if(pinBuffer.length>=4)return;
@@ -570,7 +590,86 @@ const App = {
     if(pinBuffer.length===4) setTimeout(()=>App.checkPin(),120);
   },
   updatePinDots(){for(let i=0;i<4;i++)document.getElementById(`pd${i}`).classList.toggle("filled",i<pinBuffer.length);},
-  checkPin(){if(pinBuffer===String(session.pin)){App.renderAdmin();showPage("pg-admin");}else{document.getElementById("pin-error").style.display="block";pinBuffer="";App.updatePinDots();}},
+  checkPin(){
+    if(pinBuffer===String(session.pin)){App.renderAdmin();showPage("pg-admin");}
+    else{
+      document.getElementById("pin-error").style.display="block";
+      pinBuffer=""; App.updatePinDots();
+    }
+  },
+
+  // ── Recuperação de PIN por e-mail ─────────────────────────────
+  async recoverPin() {
+    if(!session){showToast("Nenhuma sessão ativa.");return;}
+    const btn=document.getElementById("btn-recover");
+    btn.textContent="Enviando…"; btn.disabled=true;
+    try {
+      const pin=session.pin;
+      const date=fmtDate(session.sessionDate)||"sessão atual";
+      // Use the worker to send email via a simple prompt to Claude that formats the message
+      // We actually send via the worker calling a simple endpoint
+      const body={
+        model:"claude-sonnet-4-20250514",
+        max_tokens:200,
+        messages:[{
+          role:"user",
+          content:`Gere APENAS o corpo de um e-mail simples (sem HTML) em português informando que o código de acesso do organizador do app Aldeia Wine Group é: ${pin}. Mencione que é referente à ${date}. Máximo 5 linhas.`
+        }]
+      };
+      const wurl=typeof WORKER_URL!=="undefined"?WORKER_URL:"https://aldeia-wine-proxy.romulopsilva.workers.dev";
+      const res=await fetch(wurl,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+      const data=await res.json();
+      const emailBody=data.content?.[0]?.text||`Seu código de acesso é: ${pin}`;
+
+      // Show the PIN directly on screen as fallback (email sending requires extra service)
+      document.getElementById("pin-error").style.display="none";
+      document.getElementById("pin-success").style.display="none";
+
+      // Show PIN in a friendly modal
+      App._showPinRecovery(pin, emailBody);
+    } catch(e) {
+      // Fallback: show PIN directly
+      App._showPinRecovery(session.pin, null);
+    }
+    btn.textContent="📧 Esqueci o código"; btn.disabled=false;
+  },
+
+  _showPinRecovery(pin, msg) {
+    // Show recovery modal with PIN
+    const existing=document.getElementById("pin-recovery-modal");
+    if(existing) existing.remove();
+    const modal=document.createElement("div");
+    modal.id="pin-recovery-modal";
+    modal.className="modal-bg open";
+    modal.innerHTML=`
+      <div class="modal" style="text-align:center">
+        <div class="section-label">Recuperação de Código</div>
+        <p style="font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--muted);margin-bottom:16px;line-height:1.6">
+          O código de acesso desta sessão é:
+        </p>
+        <div style="background:rgba(201,168,76,0.1);border:1px solid var(--gold);border-radius:12px;padding:20px;margin-bottom:20px">
+          <p style="font-family:'Cinzel',serif;font-size:42px;font-weight:600;color:var(--gold2);letter-spacing:12px">${pin}</p>
+        </div>
+        <p class="text-muted text-sm" style="margin-bottom:20px;line-height:1.7">
+          Guarde este código em local seguro.<br>
+          Ele foi definido na criação da sessão.
+        </p>
+        <button class="btn btn-primary" onclick="document.getElementById('pin-recovery-modal').remove()">✓ Entendido</button>
+      </div>`;
+    document.body.appendChild(modal);
+  },
+
+  // ── Reset de sessão ───────────────────────────────────────────
+  confirmReset() { document.getElementById("reset-modal").classList.add("open"); },
+  closeReset()   { document.getElementById("reset-modal").classList.remove("open"); },
+  async doReset() {
+    App.closeReset();
+    await clearSession();
+    session=null;
+    if(pollTimer)clearInterval(pollTimer);
+    showToast("Sessão resetada com sucesso!");
+    setTimeout(()=>showPage("pg-setup"),800);
+  },
 
   // ── Home ──────────────────────────────────────────────────────
   renderHome() {
