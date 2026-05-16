@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Aldeia Wine Group</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  // ── Firebase config ── 
+  // INSTRUÇÃO: Substitua estes valores pelos do seu projeto Firebase (gratuito)
+  // Veja o guia de configuração incluído abaixo no HTML
+  <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyB2rZimIUvgHHeCvt-no8BPHn1PPBCFzGI",
+    authDomain: "aldeia-wine.firebaseapp.com",
+    databaseURL: "https://aldeia-wine-default-rtdb.firebaseio.com",
+    projectId: "aldeia-wine",
+    storageBucket: "aldeia-wine.firebasestorage.app",
+    messagingSenderId: "967767335111",
+    appId: "1:967767335111:web:6a784ca8dca3671e991ee2"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+</script>
+
+  let db = null;
+  let firebaseOk = false;
+
+  try {
+    const app = initializeApp(firebaseConfig);
+    db = getDatabase(app);
+    firebaseOk = firebaseConfig.apiKey !== "COLE_AQUI";
+  } catch(e) {}
+
+  // Expose to global
+  window._firebase = { db, ref, set, get, onValue, remove, ok: firebaseOk };
+</script>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --wine:   #6b1a2a;
+    --wine2:  #8b2337;
+    --gold:   #c9a84c;
+    --gold2:  #e8cc7a;
+    --cream:  #f5ede0;
+    --dark:   #0d0508;
+    --dark2:  #1a0c10;
+    --dark3:  #261318;
+    --muted:  #7a5c64;
+    --border: rgba(201,168,76,0.25);
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  html, body {
+    min-height: 100%;
+    background: var(--dark);
+    font-family: 'Lato', sans-serif;
+    color: var(--cream);
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(107,26,42,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 80% 90%, rgba(107,26,42,0.12) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+
+  #app { position: relative; z-index: 1; min-height: 100vh; padding-bottom: var(--safe-bottom); }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    padding: calc(var(--safe-top) + 40px) 20px 28px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(107,26,42,0.1) 0%, transparent 100%);
+  }
+  .header-ornament { color: var(--gold); font-size: 11px; letter-spacing: 5px; text-transform: uppercase; font-family: 'Cinzel', serif; opacity: 0.7; margin-bottom: 10px; }
+  .header h1 { font-family: 'Cinzel', serif; font-size: clamp(22px, 6vw, 42px); font-weight: 600; color: var(--gold2); letter-spacing: 2px; line-height: 1.15; }
+  .header h1 em { font-style: italic; font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: 1.15em; color: var(--cream); }
+  .header-sub { margin-top: 8px; font-family: 'Cormorant Garamond', serif; font-size: 15px; color: var(--muted); letter-spacing: 2px; font-style: italic; }
+
+  /* ── Page ── */
+  .page { max-width: 520px; margin: 0 auto; padding: 24px 16px 40px; display: none; }
+  .page.active { display: block; }
+
+  /* ── Card ── */
+  .card {
+    background: linear-gradient(135deg, rgba(38,19,24,0.92), rgba(26,12,16,0.96));
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+
+  .section-label {
+    font-family: 'Cinzel', serif;
+    font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--gold); opacity: 0.8; margin-bottom: 18px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* ── Buttons ── */
+  .btn {
+    font-family: 'Cinzel', serif;
+    font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase;
+    border: none; cursor: pointer; border-radius: 8px;
+    padding: 15px 20px; transition: all .22s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; touch-action: manipulation;
+    -webkit-appearance: none;
+  }
+  .btn-primary { background: linear-gradient(135deg, var(--wine), var(--wine2)); color: var(--gold2); }
+  .btn-primary:active { filter: brightness(1.15); transform: scale(0.98); }
+  .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--gold); }
+  .btn-ghost:active { background: rgba(201,168,76,0.08); }
+  .btn-gold { background: linear-gradient(135deg, #b8932a, var(--gold)); color: var(--dark); font-weight: 600; }
+  .btn-gold:active { filter: brightness(1.1); transform: scale(0.98); }
+  .btn-sm { padding: 10px 16px; font-size: 10px; }
+  .btn:disabled { opacity: 0.38; pointer-events: none; }
+  .btn + .btn { margin-top: 10px; }
+
+  /* ── Inputs ── */
+  .input {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border); border-radius: 8px;
+    color: var(--cream); font-family: 'Lato', sans-serif; font-size: 16px;
+    padding: 13px 15px; width: 100%; transition: border-color .2s; outline: none;
+    -webkit-appearance: none; appearance: none;
+  }
+  .input:focus { border-color: rgba(201,168,76,0.65); background: rgba(255,255,255,0.07); }
+  .input::placeholder { color: var(--muted); }
+  .input[type="date"] { color-scheme: dark; }
+  .label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); opacity: 0.75; margin-bottom: 7px; display: block; font-family: 'Cinzel', serif; }
+
+  /* ── Grid ── */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 360px) { .grid2 { grid-template-columns: 1fr; } }
+
+  /* ── Field group ── */
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+
+  /* ── Divider ── */
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* ── Wine voting item ── */
+  .wine-row {
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--gold);
+    border-radius: 10px; padding: 14px 16px;
+    margin-bottom: 10px; user-select: none; cursor: grab;
+    transition: background .18s, box-shadow .18s;
+    touch-action: none;
+  }
+  .wine-row:active, .wine-row.dragging { background: rgba(201,168,76,0.09); box-shadow: 0 6px 24px rgba(0,0,0,0.4); }
+  .rank-circle {
+    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--wine), var(--wine2));
+    border: 1px solid var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cinzel', serif; font-size: 14px; font-weight: 600; color: var(--gold2);
+  }
+  .wine-name { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; flex: 1; }
+  .wine-pts { font-family: 'Cinzel', serif; font-size: 12px; color: var(--gold2); white-space: nowrap; }
+  .wine-arrows { display: flex; flex-direction: column; gap: 3px; }
+  .arrow-btn {
+    background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+    color: var(--gold); border-radius: 5px; width: 32px; height: 26px;
+    cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center;
+    touch-action: manipulation; transition: background .15s;
+  }
+  .arrow-btn:active { background: rgba(201,168,76,0.15); }
+  .arrow-btn:disabled { opacity: 0.25; pointer-events: none; }
+
+  /* ── Name selector ── */
+  .name-btn {
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-bottom: 10px;
+    cursor: pointer; transition: all .18s; touch-action: manipulation;
+    -webkit-appearance: none; width: 100%; text-align: left;
+  }
+  .name-btn.selected { border-color: var(--gold); background: rgba(201,168,76,0.08); }
+  .name-btn:active { background: rgba(201,168,76,0.06); }
+  .name-circle {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: var(--muted); transition: all .18s;
+  }
+  .name-btn.selected .name-circle { background: linear-gradient(135deg, var(--wine), var(--wine2)); border-color: var(--gold); color: var(--gold2); font-size: 13px; }
+  .name-text { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--cream); }
+
+  /* ── Token / participant row ── */
+  .participant-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(255,255,255,0.03); border: 1px dashed var(--border);
+    border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; gap: 10px;
+  }
+  .p-name { font-family: 'Cormorant Garamond', serif; font-size: 18px; }
+  .voted-badge { color: #81c784; font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 2px; white-space: nowrap; }
+  .waiting-badge { color: var(--muted); font-size: 12px; }
+
+  /* ── Result row ── */
+  .result-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px; background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px;
+  }
+  .result-row.gold { border-color: var(--gold); background: rgba(201,168,76,0.08); }
+  .medal { font-size: 22px; width: 34px; text-align: center; flex-shrink: 0; }
+  .result-name { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; flex: 1; }
+  .result-sub { font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+  .result-pts { font-family: 'Cinzel', serif; font-size: 22px; font-weight: 600; color: var(--gold2); white-space: nowrap; }
+
+  /* ── Meta tags ── */
+  .meta-row { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; }
+  .meta-tag { font-size: 12px; color: var(--muted); }
+
+  /* ── Progress ── */
+  .progress-wrap { height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; margin-top: 10px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--wine), var(--gold)); border-radius: 2px; transition: width .5s; }
+
+  /* ── Tab bar ── */
+  .tabs { display: flex; gap: 4px; background: rgba(255,255,255,0.04); border-radius: 10px; padding: 4px; margin-bottom: 20px; }
+  .tab { flex: 1; padding: 11px 6px; text-align: center; font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); cursor: pointer; border-radius: 8px; transition: all .2s; border: none; background: transparent; touch-action: manipulation; }
+  .tab.active { background: linear-gradient(135deg, var(--wine), var(--wine2)); color: var(--gold2); }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: calc(24px + var(--safe-bottom)); left: 50%; transform: translateX(-50%);
+    background: linear-gradient(135deg, var(--wine), var(--wine2));
+    color: var(--gold2); font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 2px;
+    padding: 13px 24px; border-radius: 30px; border: 1px solid var(--gold);
+    box-shadow: 0 6px 24px rgba(107,26,42,0.6); z-index: 9999; white-space: nowrap;
+    animation: fadeUp .28s ease;
+  }
+  @keyframes fadeUp { from { opacity:0; transform:translateX(-50%) translateY(10px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+
+  /* ── Modal ── */
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.72); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-bg.open { display: flex; }
+  .modal { background: var(--dark3); border: 1px solid var(--border); border-radius: 14px; padding: 28px 24px; max-width: 460px; width: 100%; max-height: 90vh; overflow-y: auto; }
+
+  /* ── Photo ── */
+  .photo-zone {
+    border: 2px dashed var(--border); border-radius: 10px;
+    padding: 24px 16px; text-align: center; cursor: pointer; transition: all .2s;
+    display: block;
+  }
+  .photo-zone:active { border-color: var(--gold); background: rgba(201,168,76,0.04); }
+  .photo-thumb { width: 100%; max-height: 160px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); display: block; }
+
+  /* ── Wine detail card ── */
+  .wine-card { background: linear-gradient(135deg, rgba(38,19,24,0.95), rgba(26,12,16,0.98)); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
+  .wine-card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .wine-card-body { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+  .wine-card-photos { padding: 16px 20px; }
+  .tag { display: inline-block; background: rgba(201,168,76,0.12); border: 1px solid rgba(201,168,76,0.3); color: var(--gold2); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; font-family: 'Cinzel', serif; padding: 3px 10px; border-radius: 20px; }
+
+  /* ── Setup Firebase notice ── */
+  .firebase-notice { background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.3); border-radius: 10px; padding: 16px; margin-bottom: 20px; font-size: 13px; line-height: 1.7; color: var(--cream); }
+  .firebase-notice strong { color: var(--gold2); }
+  .firebase-notice a { color: var(--gold); }
+
+  /* ── Util ── */
+  .text-muted { color: var(--muted); font-size: 13px; }
+  .text-sm { font-size: 12px; }
+  .mt8 { margin-top: 8px; }
+  .mt12 { margin-top: 12px; }
+  .mt16 { margin-top: 16px; }
+  .flex-row { display: flex; align-items: center; gap: 12px; }
+  .gap-voted { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .voted-pill { background: rgba(76,175,80,0.12); border: 1px solid rgba(76,175,80,0.3); color: #81c784; font-size: 11px; font-family: 'Cinzel', serif; letter-spacing: 1px; padding: 4px 12px; border-radius: 20px; }
+
+  .loading-screen { display: flex; align-items: center; justify-content: center; min-height: 60vh; }
+  .loading-text { font-family: 'Cinzel', serif; color: var(--gold); letter-spacing: 4px; font-size: 12px; opacity: 0.7; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="header">
+    <div class="header-ornament">Confraria ✦ Aldeia Wine Group</div>
+    <h1><em>Aldeia</em> Wine Group</h1>
+    <div class="header-sub">Sistema de Votação · Degustação Às Cegas</div>
+  </div>
+
+  <!-- Loading -->
+  <div id="pg-loading" class="page active">
+    <div class="loading-screen"><p class="loading-text">Carregando…</p></div>
+  </div>
+
+  <!-- Home (escolha de papel) -->
+  <div id="pg-home" class="page">
+    <div class="card" id="home-session-info"></div>
+    <button class="btn btn-primary" onclick="App.goAdmin()">🍷 Sou o Organizador</button>
+    <button class="btn btn-ghost mt8" onclick="App.goGuest()">👤 Sou Participante — Quero Votar</button>
+  </div>
+
+  <!-- Setup (sem sessão) -->
+  <div id="pg-setup" class="page">
+    <div class="card">
+      <div class="section-label">Nova Sessão</div>
+
+      <div id="firebase-warn" class="firebase-notice" style="display:none">
+        ⚠️ <strong>Firebase não configurado.</strong> Os votos só ficam salvos neste dispositivo.<br>
+        Para sincronizar entre celulares, configure o Firebase gratuito.
+        <a href="#" onclick="App.showFirebaseGuide(); return false;">Ver instruções →</a>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label class="label">Data</label>
+          <input class="input" type="date" id="s-date">
+        </div>
+        <div class="field">
+          <label class="label">Anfitrião</label>
+          <input class="input" id="s-host" placeholder="Nome do anfitrião">
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label class="label">Tema</label>
+          <input class="input" id="s-theme" placeholder="Ex: Douro Superior">
+        </div>
+        <div class="field">
+          <label class="label">Prato Principal</label>
+          <input class="input" id="s-dish" placeholder="Ex: Cordeiro assado">
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="grid2">
+        <div class="field">
+          <label class="label">Nº de Vinhos</label>
+          <input class="input" type="number" id="s-wines" value="4" min="2" max="10">
+        </div>
+        <div class="field">
+          <label class="label">Nº de Participantes</label>
+          <input class="input" type="number" id="s-count" value="6" min="2" max="10" oninput="App.updateParticipantFields()">
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">Nomes dos Participantes</label>
+        <div id="s-names" class="mt8"></div>
+      </div>
+      <div class="divider"></div>
+      <p class="text-muted text-sm" style="margin-bottom:16px;line-height:1.7">
+        Os vinhos serão identificados como <strong style="color:var(--gold)">Vinho 1, Vinho 2…</strong> — degustação às cegas.
+      </p>
+      <button class="btn btn-primary" onclick="App.createSession()">✦ Criar Sessão</button>
+    </div>
+  </div>
+
+  <!-- Admin dashboard -->
+  <div id="pg-admin" class="page">
+    <div class="card" id="admin-header"></div>
+    <div class="tabs">
+      <button class="tab active" id="tab-links" onclick="App.switchTab('links')">Compartilhar</button>
+      <button class="tab" id="tab-results" onclick="App.switchTab('results')">Apuração</button>
+    </div>
+    <div id="tab-links-content"></div>
+    <div id="tab-results-content" style="display:none"></div>
+  </div>
+
+  <!-- Guest entry (seleciona nome) -->
+  <div id="pg-guest" class="page">
+    <div class="card" id="guest-info"></div>
+    <div class="card" id="guest-names">
+      <div class="section-label">Selecione seu nome</div>
+      <div id="name-list"></div>
+      <div id="voted-list-wrap" style="display:none">
+        <p class="text-muted text-sm mt8">Já votaram:</p>
+        <div id="voted-list" class="gap-voted"></div>
+      </div>
+      <p id="all-voted-msg" style="display:none;font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--muted);text-align:center;padding:16px 0">
+        Todos já votaram! Aguarde a apuração.
+      </p>
+      <p id="name-error" style="color:#e57373;font-size:12px;margin-top:8px;display:none">Selecione seu nome para continuar.</p>
+      <button class="btn btn-primary mt12" id="enter-btn" onclick="App.enterAsVoter()" disabled>✦ Entrar &amp; Votar</button>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="App.goHome()" style="margin-top:4px">← Voltar</button>
+  </div>
+
+  <!-- Voter view -->
+  <div id="pg-voter" class="page">
+    <div class="card" id="voter-info"></div>
+    <div class="card" id="voter-ranking">
+      <div class="section-label">Seu Ranking</div>
+      <p class="text-muted text-sm" style="margin-bottom:14px;line-height:1.6">
+        Use as setas ou arraste para ordenar do <strong style="color:var(--gold)">melhor ao pior</strong>.
+      </p>
+      <div id="wine-order"></div>
+      <div class="divider"></div>
+      <p class="text-muted text-sm" style="text-align:center" id="score-legend"></p>
+      <button class="btn btn-primary mt12" onclick="App.submitVote()">✦ Confirmar Meu Voto</button>
+    </div>
+  </div>
+
+  <!-- Vote confirmed -->
+  <div id="pg-thanks" class="page" style="text-align:center">
+    <div class="card">
+      <p style="font-size:48px;margin-bottom:12px">🍷</p>
+      <p style="font-family:'Cinzel',serif;font-size:15px;color:var(--gold2);letter-spacing:3px">Voto Registrado</p>
+      <p id="thanks-name" style="font-family:'Cormorant Garamond',serif;font-size:20px;margin-top:12px;color:var(--muted)"></p>
+      <p class="text-muted text-sm mt12" style="line-height:1.7">Seu voto foi computado. Os resultados serão revelados após a apuração.</p>
+    </div>
+  </div>
+
+  <!-- Firebase guide modal -->
+  <div class="modal-bg" id="firebase-modal">
+    <div class="modal">
+      <div class="section-label">Configurar Firebase (Gratuito)</div>
+      <p style="font-size:13px;line-height:1.8;color:var(--cream);margin-bottom:16px">
+        Para que os votos sincronizem entre celulares em tempo real, siga estes passos simples:
+      </p>
+      <ol style="font-size:13px;line-height:2;color:var(--muted);padding-left:20px">
+        <li>Acesse <a href="https://console.firebase.google.com" target="_blank" style="color:var(--gold)">console.firebase.google.com</a></li>
+        <li>Crie um projeto (nome: <em>aldeia-wine</em>)</li>
+        <li>Clique em <strong style="color:var(--cream)">Realtime Database</strong> → Criar banco de dados</li>
+        <li>Escolha o modo <strong style="color:var(--cream)">teste</strong> (30 dias gratuito)</li>
+        <li>Em <strong style="color:var(--cream)">Configurações do Projeto</strong> → Adicionar app Web</li>
+        <li>Copie o objeto <code style="color:var(--gold2)">firebaseConfig</code></li>
+        <li>Abra este arquivo HTML num editor de texto e cole os valores no início do script</li>
+      </ol>
+      <button class="btn btn-ghost btn-sm mt16" onclick="App.closeFirebaseGuide()">Fechar</button>
+    </div>
+  </div>
+
+  <!-- Confirm modal -->
+  <div class="modal-bg" id="confirm-modal">
+    <div class="modal">
+      <div class="section-label">Confirmar Apuração</div>
+      <p id="confirm-msg" style="font-family:'Cormorant Garamond',serif;font-size:18px;line-height:1.6;color:var(--cream)"></p>
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button class="btn btn-ghost" onclick="App.closeConfirm()" style="flex:1">Cancelar</button>
+        <button class="btn btn-primary" id="confirm-ok" style="flex:1">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wine detail modal -->
+  <div class="modal-bg" id="wine-modal">
+    <div class="modal">
+      <div class="section-label" id="wine-modal-title"></div>
+      <div class="field"><label class="label">Nome do Vinho</label><input class="input" id="wm-name" placeholder="Ex: Barca Velha 2011"></div>
+      <div class="field"><label class="label">Produtor</label><input class="input" id="wm-producer" placeholder="Ex: Casa Ferreirinha"></div>
+      <div class="grid2">
+        <div class="field"><label class="label">Região</label><input class="input" id="wm-region" placeholder="Ex: Douro"></div>
+        <div class="field"><label class="label">Safra</label><input class="input" id="wm-vintage" placeholder="2019"></div>
+      </div>
+      <div class="field"><label class="label">Notas</label><textarea class="input" id="wm-notes" rows="3" style="resize:vertical"></textarea></div>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button class="btn btn-ghost" onclick="App.closeWineModal()" style="flex:1">Cancelar</button>
+        <button class="btn btn-primary" onclick="App.saveWineDetails()" style="flex:1">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-el" class="toast" style="display:none"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+const STORAGE_KEY = "aldeia_v2";
+let session = null;
+let activeParticipantId = null;
+let editingWineId = null;
+let selectedNameId = null;
+let toastTimer = null;
+let pollTimer = null;
+let dragSrcIdx = null;
+let touchDragData = null;
+
+// ═══════════════════════════════════════════════════════════════
+// PERSISTENCE  (Firebase preferred, localStorage fallback)
+// ═══════════════════════════════════════════════════════════════
+async function saveSession(data) {
+  const json = JSON.stringify(data);
+  localStorage.setItem(STORAGE_KEY, json);
+  const fb = window._firebase;
+  if (fb && fb.ok && fb.db) {
+    try { await fb.set(fb.ref(fb.db, "session"), JSON.parse(json)); } catch(e) {}
+  }
+}
+
+async function loadSession() {
+  const fb = window._firebase;
+  if (fb && fb.ok && fb.db) {
+    try {
+      const snap = await fb.get(fb.ref(fb.db, "session"));
+      if (snap.exists()) return snap.val();
+    } catch(e) {}
+  }
+  const local = localStorage.getItem(STORAGE_KEY);
+  return local ? JSON.parse(local) : null;
+}
+
+async function clearSession() {
+  localStorage.removeItem(STORAGE_KEY);
+  const fb = window._firebase;
+  if (fb && fb.ok && fb.db) {
+    try { await fb.remove(fb.ref(fb.db, "session")); } catch(e) {}
+  }
+}
+
+function subscribeSession(cb) {
+  const fb = window._firebase;
+  if (fb && fb.ok && fb.db) {
+    fb.onValue(fb.ref(fb.db, "session"), snap => {
+      if (snap.exists()) cb(snap.val());
+    });
+    return;
+  }
+  // Fallback: poll localStorage every 5s
+  pollTimer = setInterval(() => {
+    const local = localStorage.getItem(STORAGE_KEY);
+    if (local) { try { cb(JSON.parse(local)); } catch(e) {} }
+  }, 5000);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════════
+const genId = () => Math.random().toString(36).slice(2, 8).toUpperCase();
+
+function fmtDate(d) {
+  if (!d) return "";
+  try { return new Date(d + "T12:00:00").toLocaleDateString("pt-BR", {day:"2-digit",month:"long",year:"numeric"}); }
+  catch(e) { return d; }
+}
+
+function getScore(rank, total) {
+  // 1st = 10, 2nd = 9... down to minimum 1
+  return Math.max(1, total + 1 - (rank + 1) + (total >= 10 ? 0 : 10 - total));
+}
+
+function showToast(msg) {
+  const el = document.getElementById("toast-el");
+  el.textContent = "✦ " + msg;
+  el.style.display = "block";
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.style.display = "none"; }, 2600);
+}
+
+function showPage(id) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  window.scrollTo(0, 0);
+}
+
+function metaHtml(s) {
+  let html = "";
+  if (s.sessionDate) html += `<span class="meta-tag">📅 ${fmtDate(s.sessionDate)}</span>`;
+  if (s.host)        html += `<span class="meta-tag">🏠 ${s.host}</span>`;
+  if (s.theme)       html += `<span class="meta-tag">🍇 ${s.theme}</span>`;
+  if (s.mainDish)    html += `<span class="meta-tag">🍽️ ${s.mainDish}</span>`;
+  return html ? `<div class="meta-row">${html}</div>` : "";
+}
+
+// ═══════════════════════════════════════════════════════════════
+// APP
+// ═══════════════════════════════════════════════════════════════
+const App = {
+
+  // ── Boot ──────────────────────────────────────────────────────
+  async init() {
+    // Wait for firebase module to attach
+    await new Promise(r => setTimeout(r, 300));
+    App.updateParticipantFields();
+
+    // Show firebase warning if not configured
+    const fb = window._firebase;
+    if (!fb || !fb.ok) {
+      document.getElementById("firebase-warn").style.display = "block";
+    }
+
+    session = await loadSession();
+    if (session) {
+      App.renderHome();
+      showPage("pg-home");
+      // Live updates
+      subscribeSession(updated => {
+        session = updated;
+        App.refreshLiveViews();
+      });
+    } else {
+      showPage("pg-setup");
+    }
+  },
+
+  refreshLiveViews() {
+    const cur = document.querySelector(".page.active")?.id;
+    if (cur === "pg-admin")  App.renderAdmin();
+    if (cur === "pg-home")   App.renderHome();
+    if (cur === "pg-guest")  App.renderGuest();
+  },
+
+  // ── Navigation ────────────────────────────────────────────────
+  goHome()  { App.renderHome(); showPage("pg-home"); },
+  goAdmin() { App.renderAdmin(); showPage("pg-admin"); },
+  goGuest() { selectedNameId = null; App.renderGuest(); showPage("pg-guest"); },
+
+  // ── Setup form ────────────────────────────────────────────────
+  updateParticipantFields() {
+    const n = Math.max(2, Math.min(10, parseInt(document.getElementById("s-count").value) || 6));
+    const container = document.getElementById("s-names");
+    const existing = container.querySelectorAll("input");
+    const vals = Array.from(existing).map(i => i.value);
+    container.innerHTML = "";
+    for (let i = 0; i < n; i++) {
+      const inp = document.createElement("input");
+      inp.className = "input";
+      inp.placeholder = `Participante ${i+1}`;
+      inp.value = vals[i] || "";
+      inp.style.marginBottom = "8px";
+      container.appendChild(inp);
+    }
+  },
+
+  async createSession() {
+    const numWines = Math.max(2, Math.min(10, parseInt(document.getElementById("s-wines").value) || 4));
+    const numPart  = Math.max(2, Math.min(10, parseInt(document.getElementById("s-count").value) || 6));
+    const nameInputs = document.querySelectorAll("#s-names input");
+
+    const wines = Array.from({length: numWines}, (_, i) => ({
+      id: i+1, label: String(i+1), score: 0, voteCount: 0, details: null, photos: {}
+    }));
+    const participants = Array.from(nameInputs).slice(0, numPart).map((inp, i) => ({
+      id: genId(), name: inp.value.trim() || `Participante ${i+1}`, voted: false, votes: []
+    }));
+
+    session = {
+      wines, participants,
+      sessionDate: document.getElementById("s-date").value,
+      host:        document.getElementById("s-host").value.trim(),
+      theme:       document.getElementById("s-theme").value.trim(),
+      mainDish:    document.getElementById("s-dish").value.trim(),
+      status: "voting",
+      created: new Date().toISOString()
+    };
+
+    await saveSession(session);
+    App.renderAdmin();
+    showPage("pg-admin");
+
+    subscribeSession(updated => {
+      session = updated;
+      App.refreshLiveViews();
+    });
+  },
+
+  // ── Home page ─────────────────────────────────────────────────
+  renderHome() {
+    if (!session) return;
+    const votedN = session.participants.filter(p=>p.voted).length;
+    const total  = session.participants.length;
+    const pct    = Math.round(votedN/total*100);
+    document.getElementById("home-session-info").innerHTML = `
+      <div class="section-label">Sessão Ativa</div>
+      ${metaHtml(session)}
+      <p class="text-muted text-sm mt8">${session.wines.length} vinhos · ${total} participantes · ${votedN} votaram</p>
+      <div class="progress-wrap mt8"><div class="progress-fill" style="width:${pct}%"></div></div>
+    `;
+  },
+
+  // ── Admin ─────────────────────────────────────────────────────
+  renderAdmin() {
+    if (!session) return;
+    const votedN = session.participants.filter(p=>p.voted).length;
+    const total  = session.participants.length;
+    const pct    = Math.round(votedN/total*100);
+
+    document.getElementById("admin-header").innerHTML = `
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div style="flex:1">
+          ${metaHtml(session)}
+          <p class="text-muted text-sm mt8">${session.wines.length} vinhos · ${total} participantes</p>
+        </div>
+        <div style="text-align:center;flex-shrink:0">
+          <p style="font-family:'Cinzel',serif;font-size:26px;color:var(--gold2)">${votedN}/${total}</p>
+          <p class="text-muted text-sm">votaram</p>
+        </div>
+      </div>
+      <div class="progress-wrap mt8"><div class="progress-fill" style="width:${pct}%"></div></div>
+    `;
+
+    // Re-render active tab
+    const activeTab = document.getElementById("tab-links").classList.contains("active") ? "links" : "results";
+    App.renderTabLinks();
+    App.renderTabResults();
+    App.switchTab(activeTab);
+  },
+
+  switchTab(name) {
+    ["links","results"].forEach(t => {
+      document.getElementById(`tab-${t}`).classList.toggle("active", t===name);
+      document.getElementById(`tab-${t}-content`).style.display = t===name ? "block" : "none";
+    });
+  },
+
+  renderTabLinks() {
+    const container = document.getElementById("tab-links-content");
+    const rows = session.participants.map(p => `
+      <div class="participant-row">
+        <span class="p-name">${p.name}</span>
+        ${p.voted
+          ? `<span class="voted-badge">✓ Votou</span>`
+          : `<span class="waiting-badge">Aguardando…</span>`}
+      </div>
+    `).join("");
+
+    container.innerHTML = `
+      <div class="card">
+        <div class="section-label">Compartilhar</div>
+        <div style="background:rgba(201,168,76,0.06);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px">
+          <p class="label" style="margin-bottom:6px">Link do App</p>
+          <p class="text-muted text-sm" style="line-height:1.7;margin-bottom:14px">
+            Envie este link para todos os participantes. Cada um escolhe o próprio nome e vota — sem login, sem senha.
+          </p>
+          <button class="btn btn-gold" onclick="App.copyLink()">📋 Copiar Link para Compartilhar</button>
+        </div>
+        <div class="section-label" style="margin-top:4px">Status dos Participantes</div>
+        ${rows}
+        <div class="divider"></div>
+        <button class="btn btn-primary" onclick="App.tryFinalize()">✦ Apurar Votos</button>
+        <button class="btn btn-ghost btn-sm" onclick="App.goHome()" style="margin-top:10px">← Voltar ao Início</button>
+        <button class="btn btn-ghost btn-sm" onclick="App.newSession()" style="margin-top:8px">+ Nova Sessão</button>
+      </div>
+    `;
+  },
+
+  renderTabResults() {
+    const container = document.getElementById("tab-results-content");
+    if (session.status !== "done") {
+      container.innerHTML = `
+        <div class="card" style="text-align:center;padding:40px 24px">
+          <p style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--muted)">
+            Apure os votos para ver os resultados
+          </p>
+        </div>`;
+      return;
+    }
+
+    const ranked = [...session.wines].sort((a,b) => b.score - a.score);
+    const medals = ["🥇","🥈","🥉"];
+
+    const rankRows = ranked.map((w, idx) => `
+      <div class="result-row${idx===0?" gold":""}">
+        <span class="medal">${medals[idx]||`#${idx+1}`}</span>
+        <div style="flex:1">
+          <div class="result-name">Vinho ${w.label}${w.details?.name?` <span style="color:var(--muted);font-weight:300;font-size:16px">— ${w.details.name}</span>`:""}</div>
+          <div class="result-sub">${w.voteCount} voto(s)</div>
+        </div>
+        <span class="result-pts">${w.score} pts</span>
+      </div>
+    `).join("");
+
+    const wineCards = ranked.map(w => {
+      const hasDetails = w.details?.name;
+      const photoFront = w.photos?.Frente
+        ? `<img src="${w.photos.Frente}" class="photo-thumb">`
+        : `<label class="photo-zone" onclick="App.triggerPhoto('${w.id}','Frente')"><span style="font-size:28px;color:var(--gold)">📷</span><p class="text-muted text-sm mt8">Foto da Frente</p></label>`;
+      const photoVerso = w.photos?.Verso
+        ? `<img src="${w.photos.Verso}" class="photo-thumb">`
+        : `<label class="photo-zone" onclick="App.triggerPhoto('${w.id}','Verso')"><span style="font-size:28px;color:var(--gold)">📷</span><p class="text-muted text-sm mt8">Foto do Verso</p></label>`;
+
+      return `
+        <div class="wine-card">
+          <div class="wine-card-header">
+            <div>
+              <span class="tag">Vinho ${w.label}</span>
+              <span style="font-family:'Cormorant Garamond',serif;font-size:18px;margin-left:10px">${hasDetails ? w.details.name : "Sem identificação"}</span>
+            </div>
+            <button class="btn btn-ghost btn-sm" style="width:auto" onclick="App.openWineModal('${w.id}')">${hasDetails?"Editar":"Identificar"}</button>
+          </div>
+          ${hasDetails ? `
+          <div class="wine-card-body">
+            <div class="grid2" style="gap:10px">
+              ${w.details.producer?`<div><p class="label">Produtor</p><p style="font-family:'Cormorant Garamond',serif;font-size:15px">${w.details.producer}</p></div>`:""}
+              ${w.details.region?`<div><p class="label">Região</p><p style="font-family:'Cormorant Garamond',serif;font-size:15px">${w.details.region}</p></div>`:""}
+              ${w.details.vintage?`<div><p class="label">Safra</p><p style="font-family:'Cormorant Garamond',serif;font-size:15px">${w.details.vintage}</p></div>`:""}
+            </div>
+            ${w.details.notes?`<div class="mt12"><p class="label">Notas</p><p class="text-muted" style="line-height:1.7">${w.details.notes}</p></div>`:""}
+          </div>` : ""}
+          <div class="wine-card-photos">
+            <p class="label" style="margin-bottom:14px">Fotos do Rótulo</p>
+            <div class="grid2" style="gap:12px">
+              <div>
+                <p class="text-muted text-sm" style="margin-bottom:8px">Frente</p>
+                ${photoFront}
+                ${w.photos?.Frente?`<button class="btn btn-ghost btn-sm mt8" onclick="App.triggerPhoto('${w.id}','Frente')">Trocar</button>`:""}
+              </div>
+              <div>
+                <p class="text-muted text-sm" style="margin-bottom:8px">Verso</p>
+                ${photoVerso}
+                ${w.photos?.Verso?`<button class="btn btn-ghost btn-sm mt8" onclick="App.triggerPhoto('${w.id}','Verso')">Trocar</button>`:""}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    // Session summary at top of results
+    const summaryMeta = metaHtml(session);
+    container.innerHTML = `
+      ${summaryMeta ? `<div class="card">${summaryMeta}</div>` : ""}
+      <div class="card">
+        <div class="section-label">Ranking Final</div>
+        ${rankRows}
+      </div>
+      ${wineCards}
+    `;
+  },
+
+  copyLink() {
+    const url = window.location.href;
+    if (navigator.share) {
+      navigator.share({ title: "Aldeia Wine Group — Votação", url })
+        .catch(() => App._copyToClipboard(url));
+    } else {
+      App._copyToClipboard(url);
+    }
+  },
+  _copyToClipboard(text) {
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(() => showToast("Link copiado!"));
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      document.execCommand("copy"); document.body.removeChild(ta);
+      showToast("Link copiado!");
+    }
+  },
+
+  tryFinalize() {
+    const voted = session.participants.filter(p=>p.voted).length;
+    const total = session.participants.length;
+    if (voted < total) {
+      document.getElementById("confirm-msg").textContent =
+        `Ainda há ${total-voted} participante(s) sem voto. Deseja apurar mesmo assim?`;
+      document.getElementById("confirm-ok").onclick = () => { App.closeConfirm(); App.finalize(); };
+      document.getElementById("confirm-modal").classList.add("open");
+    } else {
+      App.finalize();
+    }
+  },
+  closeConfirm() { document.getElementById("confirm-modal").classList.remove("open"); },
+
+  async finalize() {
+    const scores = {};
+    session.wines.forEach(w => { scores[w.id] = {total:0,count:0}; });
+    session.participants.forEach(p => {
+      if (!p.voted) return;
+      p.votes.forEach(v => { scores[v.wineId].total += v.score; scores[v.wineId].count++; });
+    });
+    session.wines = session.wines.map(w => ({
+      ...w, score: scores[w.id].total, voteCount: scores[w.id].count
+    }));
+    session.status = "done";
+    await saveSession(session);
+    App.renderAdmin();
+    App.switchTab("results");
+  },
+
+  async newSession() {
+    await clearSession();
+    session = null;
+    showPage("pg-setup");
+    App.updateParticipantFields();
+    if (pollTimer) clearInterval(pollTimer);
+  },
+
+  // ── Wine detail modal ─────────────────────────────────────────
+  openWineModal(wineId) {
+    editingWineId = parseInt(wineId);
+    const wine = session.wines.find(w => w.id === editingWineId);
+    const d = wine.details || {};
+    document.getElementById("wine-modal-title").textContent = `Identificar Vinho ${wine.label}`;
+    document.getElementById("wm-name").value     = d.name     || "";
+    document.getElementById("wm-producer").value = d.producer || "";
+    document.getElementById("wm-region").value   = d.region   || "";
+    document.getElementById("wm-vintage").value  = d.vintage  || "";
+    document.getElementById("wm-notes").value    = d.notes    || "";
+    document.getElementById("wine-modal").classList.add("open");
+  },
+  closeWineModal() { document.getElementById("wine-modal").classList.remove("open"); editingWineId = null; },
+  async saveWineDetails() {
+    if (!editingWineId) return;
+    const details = {
+      name:     document.getElementById("wm-name").value.trim(),
+      producer: document.getElementById("wm-producer").value.trim(),
+      region:   document.getElementById("wm-region").value.trim(),
+      vintage:  document.getElementById("wm-vintage").value.trim(),
+      notes:    document.getElementById("wm-notes").value.trim()
+    };
+    session.wines = session.wines.map(w => w.id===editingWineId ? {...w, details} : w);
+    await saveSession(session);
+    App.closeWineModal();
+    App.renderTabResults();
+    showToast("Detalhes salvos!");
+  },
+
+  // ── Photo upload ───────────────────────────────────────────────
+  triggerPhoto(wineId, side) {
+    const inp = document.createElement("input");
+    inp.type = "file"; inp.accept = "image/*"; inp.capture = "environment";
+    inp.style.display = "none";
+    document.body.appendChild(inp);
+    inp.onchange = async e => {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async ev => {
+        const id = parseInt(wineId);
+        session.wines = session.wines.map(w => {
+          if (w.id !== id) return w;
+          return {...w, photos: {...(w.photos||{}), [side]: ev.target.result}};
+        });
+        await saveSession(session);
+        App.renderTabResults();
+        showToast("Foto adicionada!");
+      };
+      reader.readAsDataURL(file);
+      document.body.removeChild(inp);
+    };
+    inp.click();
+  },
+
+  // ── Firebase guide ────────────────────────────────────────────
+  showFirebaseGuide()  { document.getElementById("firebase-modal").classList.add("open"); },
+  closeFirebaseGuide() { document.getElementById("firebase-modal").classList.remove("open"); },
+
+  // ── Guest / voter ─────────────────────────────────────────────
+  renderGuest() {
+    if (!session) return;
+    const meta = metaHtml(session);
+    document.getElementById("guest-info").innerHTML = `
+      <div class="section-label">Degustação Às Cegas</div>
+      ${meta}
+      <p class="text-muted text-sm mt8">${session.wines.length} vinhos para ordenar</p>
+    `;
+
+    const pending = session.participants.filter(p => !p.voted);
+    const voted   = session.participants.filter(p =>  p.voted);
+
+    const nameList = document.getElementById("name-list");
+    nameList.innerHTML = pending.map(p => `
+      <button class="name-btn${selectedNameId===p.id?" selected":""}" onclick="App.selectName('${p.id}')">
+        <div class="name-circle">${selectedNameId===p.id?"✓":"○"}</div>
+        <span class="name-text">${p.name}</span>
+      </button>
+    `).join("");
+
+    document.getElementById("all-voted-msg").style.display = pending.length===0?"block":"none";
+    document.getElementById("enter-btn").disabled = !selectedNameId || pending.length===0;
+
+    const votedWrap = document.getElementById("voted-list-wrap");
+    if (voted.length > 0) {
+      votedWrap.style.display = "block";
+      document.getElementById("voted-list").innerHTML = voted.map(p =>
+        `<span class="voted-pill">✓ ${p.name}</span>`).join("");
+    } else {
+      votedWrap.style.display = "none";
+    }
+  },
+
+  selectName(id) {
+    selectedNameId = id;
+    App.renderGuest();
+    document.getElementById("name-error").style.display = "none";
+  },
+
+  enterAsVoter() {
+    if (!selectedNameId) {
+      document.getElementById("name-error").style.display = "block"; return;
+    }
+    activeParticipantId = selectedNameId;
+    App.renderVoter();
+    showPage("pg-voter");
+  },
+
+  renderVoter() {
+    const p = session.participants.find(x => x.id === activeParticipantId);
+    const meta = metaHtml(session);
+    document.getElementById("voter-info").innerHTML = `
+      <p style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;color:var(--gold);opacity:.8">Degustação Às Cegas</p>
+      ${meta}
+      <p class="text-muted text-sm mt8">Olá, <strong style="color:var(--cream)">${p.name}</strong> — ordene os vinhos do melhor para o pior.</p>
+    `;
+
+    // Build order state on first render
+    if (!App._voteOrder || App._voteOrder.length !== session.wines.length) {
+      App._voteOrder = session.wines.map(w => w.id);
+    }
+    App.renderWineOrder();
+
+    const n = session.wines.length;
+    document.getElementById("score-legend").textContent =
+      `1º = ${getScore(0,n)} pts · 2º = ${getScore(1,n)} pts · 3º = ${getScore(2,n)} pts${n>3?" · …":""}`;
+  },
+
+  renderWineOrder() {
+    const container = document.getElementById("wine-order");
+    const n = session.wines.length;
+    container.innerHTML = App._voteOrder.map((wineId, rank) => {
+      const wine = session.wines.find(w => w.id === wineId);
+      const pts = getScore(rank, n);
+      return `
+        <div class="wine-row" id="wr-${wineId}"
+          draggable="true"
+          data-id="${wineId}"
+          ondragstart="App.dragStart(event,${rank})"
+          ondragover="App.dragOver(event)"
+          ondrop="App.dragDrop(event,${rank})"
+          ondragend="App.dragEnd(event)"
+        >
+          <div class="rank-circle">${rank+1}</div>
+          <span class="wine-name">Vinho ${wine.label}</span>
+          <div class="wine-arrows">
+            <button class="arrow-btn" onclick="App.moveWine(${rank},-1)" ${rank===0?"disabled":""}>▲</button>
+            <button class="arrow-btn" onclick="App.moveWine(${rank},1)"  ${rank===n-1?"disabled":""}>▼</button>
+          </div>
+          <span class="wine-pts">${pts} pts</span>
+        </div>
+      `;
+    }).join("");
+
+    // Touch drag support
+    container.querySelectorAll(".wine-row").forEach(row => {
+      row.addEventListener("touchstart", App.touchStart, {passive:false});
+      row.addEventListener("touchmove",  App.touchMove,  {passive:false});
+      row.addEventListener("touchend",   App.touchEnd,   {passive:false});
+    });
+  },
+
+  moveWine(rank, dir) {
+    const newRank = rank + dir;
+    if (newRank < 0 || newRank >= App._voteOrder.length) return;
+    [App._voteOrder[rank], App._voteOrder[newRank]] = [App._voteOrder[newRank], App._voteOrder[rank]];
+    App.renderWineOrder();
+  },
+
+  // Mouse drag
+  dragStart(e, rank) { dragSrcIdx = rank; e.currentTarget.classList.add("dragging"); },
+  dragOver(e)  { e.preventDefault(); },
+  dragDrop(e, toRank) {
+    e.preventDefault();
+    if (dragSrcIdx === null || dragSrcIdx === toRank) return;
+    const arr = [...App._voteOrder];
+    const [moved] = arr.splice(dragSrcIdx, 1);
+    arr.splice(toRank, 0, moved);
+    App._voteOrder = arr;
+    dragSrcIdx = null;
+    App.renderWineOrder();
+  },
+  dragEnd(e) { e.currentTarget.classList.remove("dragging"); dragSrcIdx = null; },
+
+  // Touch drag (mobile)
+  touchStart(e) {
+    const row = e.currentTarget;
+    const rect = row.getBoundingClientRect();
+    touchDragData = {
+      srcId: parseInt(row.dataset.id),
+      startY: e.touches[0].clientY,
+      offsetY: e.touches[0].clientY - rect.top,
+    };
+    row.style.opacity = "0.5";
+  },
+  touchMove(e) {
+    e.preventDefault();
+    if (!touchDragData) return;
+    const y = e.touches[0].clientY;
+    const container = document.getElementById("wine-order");
+    const rows = Array.from(container.querySelectorAll(".wine-row"));
+    let targetRank = -1;
+    rows.forEach((r, i) => {
+      const rect = r.getBoundingClientRect();
+      if (y >= rect.top && y <= rect.bottom) targetRank = i;
+    });
+    if (targetRank >= 0) touchDragData.targetRank = targetRank;
+  },
+  touchEnd(e) {
+    if (!touchDragData) return;
+    const srcId = touchDragData.srcId;
+    const toRank = touchDragData.targetRank ?? -1;
+    e.currentTarget.style.opacity = "";
+    touchDragData = null;
+    if (toRank < 0) return;
+    const srcRank = App._voteOrder.indexOf(srcId);
+    if (srcRank === toRank) return;
+    const arr = [...App._voteOrder];
+    const [moved] = arr.splice(srcRank, 1);
+    arr.splice(toRank, 0, moved);
+    App._voteOrder = arr;
+    App.renderWineOrder();
+  },
+
+  async submitVote() {
+    const n = session.wines.length;
+    const votes = App._voteOrder.map((wineId, rank) => ({ wineId, score: getScore(rank, n) }));
+    // Load latest session from storage to avoid overwriting other votes
+    const latest = await loadSession();
+    const base = latest || session;
+    const updated = {
+      ...base,
+      participants: base.participants.map(p =>
+        p.id === activeParticipantId ? {...p, voted:true, votes} : p
+      )
+    };
+    session = updated;
+    await saveSession(updated);
+    App._voteOrder = null;
+
+    const p = session.participants.find(x => x.id === activeParticipantId);
+    document.getElementById("thanks-name").innerHTML =
+      `Obrigado, <strong style="color:var(--cream)">${p.name}</strong>!`;
+    showPage("pg-thanks");
+
+    // Auto-return to home after 4s
+    setTimeout(() => { App.goHome(); }, 4000);
+  }
+};
+
+// Boot
+window.addEventListener("DOMContentLoaded", () => App.init());
+</script>
+</body>
+</html>
