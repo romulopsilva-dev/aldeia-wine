@@ -54,7 +54,7 @@ select.input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w
 .score-item{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center}
 .wine-row{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,0.03);border:1px solid var(--gold);border-radius:10px;padding:14px 16px;margin-bottom:10px;user-select:none;cursor:grab;touch-action:none}
 .wine-row.dragging{background:rgba(201,168,76,0.09);box-shadow:0 6px 24px rgba(0,0,0,0.4)}
-.rank-circle{width:38px;height:38px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--wine),var(--wine2));border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:14px;font-weight:600;color:var(--gold2)}
+.rank-circle{width:42px;height:42px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--wine),var(--wine2));border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:11px;font-weight:600;color:var(--gold2);line-height:1;text-align:center}
 .wine-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;flex:1}
 .wine-pts{font-family:'Cinzel',serif;font-size:12px;color:var(--gold2);white-space:nowrap}
 .wine-arrows{display:flex;flex-direction:column;gap:3px}
@@ -395,6 +395,9 @@ async function callClaude(messages,system,max_tokens){
   return(data.content&&data.content[0]&&data.content[0].text)||"";
 }
 
+// UTILS
+function ordinalNum(n){const s=["","1o","2o","3o","4o","5o","6o","7o","8o","9o","10o"];return s[n]||n+"o";}
+
 // APP
 const App={
   async init(){
@@ -701,15 +704,42 @@ const App={
         return p.name+": "+det;
       }).join(". ");
 
-      if(btn)btn.textContent="⏳ Analisando vinhos…";
-      const p1prompt="Voce e sommelier da Confraria Aldeia Wine Group. Sessao: "+si+". Ranking dos vinhos: "+winesCtx+". Escreva em portugues elegante as seguintes secoes: ## RESUMO DA SESSAO (2 paragrafos sobre o evento). ## ANALISE DE CADA VINHO (analise TODOS os "+ranked.length+" vinhos individualmente: votos recebidos, consenso ou divergencia, perfil sensorial, por que ficou nessa posicao). ## PADRAO DO GRUPO (o grupo preferiu qual estilo? houve unanimidade?).";
-      const part1=await callClaude([{role:"user",content:p1prompt}],null,1024);
+      // PARTE 1: Resumo da sessao
+      if(btn)btn.textContent="⏳ Gerando resumo…";
+      const p1=await callClaude([{role:"user",content:"Sommelier da Confraria Aldeia Wine Group. Sessao: "+si+". Vinhos: "+winesCtx+". Escreva em portugues elegante apenas: ## RESUMO DA SESSAO (2 paragrafos apaixonados sobre o evento, tema, prato e destaque geral) ## PADRAO DO GRUPO (1 paragrafo: o grupo preferiu qual estilo de vinho? houve unanimidade ou divergencia?)."}],null,800);
 
+      // PARTE 2: Analise de cada vinho (uma chamada por vinho para garantir completude)
+      if(btn)btn.textContent="⏳ Analisando cada vinho…";
+      const wineAnalyses=[];
+      for(let i=0;i<ranked.length;i++){
+        const w=ranked[i];const d=w.details||{};
+        const wvotes=session.participants.filter(function(p){return p.voted;}).map(function(p){const v=p.votes.find(function(x){return x.wineId===w.id;});return p.name+":"+(v?v.score:"?");}).join(", ");
+        const wctx=(i+1)+"o lugar, Vinho "+w.label+", "+(d.name||"nao identificado")+", "+(d.producer||"")+" "+(d.region||"")+" "+(d.vintage||"")+", uvas: "+(d.grape||"?")+", trouxe: "+(d.owner||"?")+", total: "+w.score+"pts, votos: "+wvotes;
+        const wa=await callClaude([{role:"user",content:"Sommelier da Confraria Aldeia Wine Group. Analise este vinho em portugues elegante (maximo 150 palavras): ## VINHO "+w.label+(d.name?" — "+d.name:"")+" ("+ordinalNum(i+1)+" lugar) (analise os votos recebidos, consenso ou polemica entre os degustadores, perfil sensorial esperado deste vinho, por que ele ficou nesta posicao). Dados: "+wctx}],null,400);
+        wineAnalyses.push(wa);
+        if(btn)btn.textContent="⏳ Vinho "+(i+1)+"/"+ranked.length+" analisado…";
+      }
+      const part2=wineAnalyses.join("\n\n");
+
+      // PARTE 3: Perfil de cada degustador
       if(btn)btn.textContent="⏳ Analisando degustadores…";
-      const p2prompt="Voce e sommelier da Confraria Aldeia Wine Group. Sessao: "+si+". Votos de cada participante: "+partCtx+". Vinhos: "+winesCtx+". Escreva em portugues elegante: ## PERFIL DE CADA DEGUSTADOR (para CADA participante: nome em destaque, analise do perfil sensorial — prefere encorpado ou elegante? tanico ou suave? classico ou moderno? Seja especifico e perspicaz.) ## CONCLUSAO (reflexao apaixonada sobre a sessao e o vinho vencedor).";
-      const part2=await callClaude([{role:"user",content:p2prompt}],null,1024);
+      const tasterAnalyses=[];
+      const voted=session.participants.filter(function(p){return p.voted;});
+      for(let i=0;i<voted.length;i++){
+        const p=voted[i];
+        const all=[].concat(p.votes).sort(function(a,b){return b.score-a.score;});
+        const det=all.map(function(v){const w=session.wines.find(function(x){return x.id===v.wineId;});const d=w&&w.details?w.details:{};return "Vinho "+(w?w.label:"?")+(d.name?" ("+d.name+")":"")+"="+v.score+"pts";}).join(", ");
+        const ta=await callClaude([{role:"user",content:"Sommelier da Confraria Aldeia Wine Group. Analise o perfil sensorial deste degustador em portugues elegante (maximo 120 palavras): ## "+p.name+" Votos dele/dela: "+det+". Contexto dos vinhos: "+winesCtx+". Descreva: o que esses votos revelam sobre o paladar desta pessoa? Prefere vinhos encorpados ou elegantes? Tanicos ou suaves? Classicos ou modernos? Qual e seu estilo de degustador?"}],null,350);
+        tasterAnalyses.push(ta);
+        if(btn)btn.textContent="⏳ Degustador "+(i+1)+"/"+voted.length+" analisado…";
+      }
+      const part3="## PERFIL DE CADA DEGUSTADOR\n\n"+tasterAnalyses.join("\n\n");
 
-      const fullReport=part1+"\n\n"+part2;
+      // PARTE 4: Conclusao
+      if(btn)btn.textContent="⏳ Gerando conclusao…";
+      const part4=await callClaude([{role:"user",content:"Sommelier da Confraria Aldeia Wine Group. Sessao: "+si+". Vinho vencedor: Vinho "+ranked[0].label+(ranked[0].details&&ranked[0].details.name?" — "+ranked[0].details.name:"")+", "+ranked[0].score+" pts. Escreva em portugues elegante apenas: ## CONCLUSAO (1 paragrafo apaixonado e memoravel sobre esta sessao, o vinho vencedor e o que ela revelou sobre o grupo)."}],null,300);
+
+      const fullReport=p1+"\n\n"+part2+"\n\n"+part3+"\n\n"+part4;
       App.renderReport(fullReport,ranked);
       session.status="closed";session.report=fullReport;
       await saveSession(session);
@@ -818,39 +848,8 @@ const App={
     container.innerHTML=App._voteOrder.map(function(wineId,rank){
       const wine=session.wines.find(function(w){return w.id===wineId;});
       const pts=sc[rank]!==undefined?sc[rank]:Math.max(1,20-(rank*2));
-      return '<div class="wine-row" id="wr-'+wineId+'" draggable="true" data-id="'+wineId+'" ondragstart="App.dragStart(event,'+rank+')" ondragover="App.dragOver(event)" ondrop="App.dragDrop(event,'+rank+')" ondragend="App.dragEnd(event)"><div class="rank-circle">'+(rank+1)+'</div><span class="wine-name">Vinho '+wine.label+'</span><div class="wine-arrows"><button class="arrow-btn" onclick="App.moveWine('+rank+',-1)" '+(rank===0?"disabled":"")+'">▲</button><button class="arrow-btn" onclick="App.moveWine('+rank+',1)" '+(rank===n-1?"disabled":"")+'">▼</button></div><span class="wine-pts">'+pts+' pts</span></div>';
+      return '<div class="wine-row" id="wr-'+wineId+'" draggable="true" data-id="'+wineId+'" ondragstart="App.dragStart(event,'+rank+')" ondragover="App.dragOver(event)" ondrop="App.dragDrop(event,'+rank+')" ondragend="App.dragEnd(event)"><div class="rank-circle">'+((rank+1)+"º")+'</div><span class="wine-name">Vinho '+wine.label+'</span><div class="wine-arrows"><button class="arrow-btn" onclick="App.moveWine('+rank+',-1)" '+(rank===0?"disabled":"")+'">▲</button><button class="arrow-btn" onclick="App.moveWine('+rank+',1)" '+(rank===n-1?"disabled":"")+'">▼</button></div><span class="wine-pts">'+pts+' pts</span></div>';
     }).join("");
     container.querySelectorAll(".wine-row").forEach(function(row){
       row.addEventListener("touchstart",App.touchStart,{passive:false});
-      row.addEventListener("touchmove",App.touchMove,{passive:false});
-      row.addEventListener("touchend",App.touchEnd,{passive:false});
-    });
-  },
-  moveWine(rank,dir){const nr=rank+dir;if(nr<0||nr>=App._voteOrder.length)return;const t=App._voteOrder[rank];App._voteOrder[rank]=App._voteOrder[nr];App._voteOrder[nr]=t;App.renderWineOrder();},
-  dragStart(e,rank){dragSrcIdx=rank;e.currentTarget.classList.add("dragging");},
-  dragOver(e){e.preventDefault();},
-  dragDrop(e,toRank){e.preventDefault();if(dragSrcIdx===null||dragSrcIdx===toRank)return;const arr=App._voteOrder.slice();const m=arr.splice(dragSrcIdx,1)[0];arr.splice(toRank,0,m);App._voteOrder=arr;dragSrcIdx=null;App.renderWineOrder();},
-  dragEnd(e){e.currentTarget.classList.remove("dragging");dragSrcIdx=null;},
-  touchStart(e){const row=e.currentTarget;touchDragData={srcId:parseInt(row.dataset.id),startY:e.touches[0].clientY};row.style.opacity="0.5";},
-  touchMove(e){e.preventDefault();if(!touchDragData)return;const y=e.touches[0].clientY;const rows=Array.from(document.getElementById("wine-order").querySelectorAll(".wine-row"));let tr=-1;rows.forEach(function(r,i){const rc=r.getBoundingClientRect();if(y>=rc.top&&y<=rc.bottom)tr=i;});if(tr>=0)touchDragData.targetRank=tr;},
-  touchEnd(e){if(!touchDragData)return;const srcId=touchDragData.srcId;const toRank=touchDragData.targetRank!=null?touchDragData.targetRank:-1;e.currentTarget.style.opacity="";touchDragData=null;if(toRank<0)return;const srcRank=App._voteOrder.indexOf(srcId);if(srcRank===toRank)return;const arr=App._voteOrder.slice();const m=arr.splice(srcRank,1)[0];arr.splice(toRank,0,m);App._voteOrder=arr;App.renderWineOrder();},
-
-  async submitVote(){
-    const sc=session.scores||[];
-    const votes=App._voteOrder.map(function(wineId,rank){return{wineId:wineId,score:sc[rank]!==undefined?sc[rank]:Math.max(1,20-(rank*2))};});
-    const latest=await loadSession();
-    const base=latest||session;
-    const updated=Object.assign({},base,{participants:base.participants.map(function(p){return p.id===activeParticipantId?Object.assign({},p,{voted:true,votes:votes}):p;})});
-    session=updated;await saveSession(updated);App._voteOrder=null;
-    const p=session.participants.find(function(x){return x.id===activeParticipantId;});
-    document.getElementById("thanks-name").innerHTML="Obrigado, <strong style=\"color:var(--cream)\">"+p.name+"</strong>!";
-    showPage("pg-thanks");
-    setTimeout(function(){App.goHome();},4000);
-  }
-};
-
-window.addEventListener("DOMContentLoaded",function(){App.init();});
-
-</script>
-</body>
-</html>
+      row.addEventListener("touchmove",App.touchMove,{passive:fa
