@@ -852,4 +852,35 @@ const App={
     }).join("");
     container.querySelectorAll(".wine-row").forEach(function(row){
       row.addEventListener("touchstart",App.touchStart,{passive:false});
-      row.addEventListener("touchmove",App.touchMove,{passive:fa
+      row.addEventListener("touchmove",App.touchMove,{passive:false});
+      row.addEventListener("touchend",App.touchEnd,{passive:false});
+    });
+  },
+  moveWine(rank,dir){const nr=rank+dir;if(nr<0||nr>=App._voteOrder.length)return;const t=App._voteOrder[rank];App._voteOrder[rank]=App._voteOrder[nr];App._voteOrder[nr]=t;App.renderWineOrder();},
+  dragStart(e,rank){dragSrcIdx=rank;e.currentTarget.classList.add("dragging");},
+  dragOver(e){e.preventDefault();},
+  dragDrop(e,toRank){e.preventDefault();if(dragSrcIdx===null||dragSrcIdx===toRank)return;const arr=App._voteOrder.slice();const m=arr.splice(dragSrcIdx,1)[0];arr.splice(toRank,0,m);App._voteOrder=arr;dragSrcIdx=null;App.renderWineOrder();},
+  dragEnd(e){e.currentTarget.classList.remove("dragging");dragSrcIdx=null;},
+  touchStart(e){const row=e.currentTarget;touchDragData={srcId:parseInt(row.dataset.id),startY:e.touches[0].clientY};row.style.opacity="0.5";},
+  touchMove(e){e.preventDefault();if(!touchDragData)return;const y=e.touches[0].clientY;const rows=Array.from(document.getElementById("wine-order").querySelectorAll(".wine-row"));let tr=-1;rows.forEach(function(r,i){const rc=r.getBoundingClientRect();if(y>=rc.top&&y<=rc.bottom)tr=i;});if(tr>=0)touchDragData.targetRank=tr;},
+  touchEnd(e){if(!touchDragData)return;const srcId=touchDragData.srcId;const toRank=touchDragData.targetRank!=null?touchDragData.targetRank:-1;e.currentTarget.style.opacity="";touchDragData=null;if(toRank<0)return;const srcRank=App._voteOrder.indexOf(srcId);if(srcRank===toRank)return;const arr=App._voteOrder.slice();const m=arr.splice(srcRank,1)[0];arr.splice(toRank,0,m);App._voteOrder=arr;App.renderWineOrder();},
+
+  async submitVote(){
+    const sc=session.scores||[];
+    const votes=App._voteOrder.map(function(wineId,rank){return{wineId:wineId,score:sc[rank]!==undefined?sc[rank]:Math.max(1,20-(rank*2))};});
+    const latest=await loadSession();
+    const base=latest||session;
+    const updated=Object.assign({},base,{participants:base.participants.map(function(p){return p.id===activeParticipantId?Object.assign({},p,{voted:true,votes:votes}):p;})});
+    session=updated;await saveSession(updated);App._voteOrder=null;
+    const p=session.participants.find(function(x){return x.id===activeParticipantId;});
+    document.getElementById("thanks-name").innerHTML="Obrigado, <strong style=\"color:var(--cream)\">"+p.name+"</strong>!";
+    showPage("pg-thanks");
+    setTimeout(function(){App.goHome();},4000);
+  }
+};
+
+window.addEventListener("DOMContentLoaded",function(){App.init();});
+
+</script>
+</body>
+</html>
