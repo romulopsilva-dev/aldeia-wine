@@ -567,7 +567,20 @@ const App={
         body+='</div>';
       }
       const ai=w.aiInfo?'<div class="wine-card-ai"><div class="ai-info-box"><p class="label" style="margin-bottom:8px">📖 Informacoes do Vinho</p><p>'+w.aiInfo+'</p></div></div>':"";
-      return '<div class="wine-card"><div class="wine-card-header"><div style="flex:1"><div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px"><span class="tag">Vinho '+w.label+'</span>'+(d.owner?'<span style="background:rgba(107,26,42,0.3);border:1px solid rgba(201,168,76,0.3);color:var(--gold2);font-size:10px;font-family:Cinzel,serif;padding:3px 10px;border-radius:20px">👤 '+d.owner+'</span>':'')+'</div><span style="font-family:Cormorant Garamond,serif;font-size:18px;display:block;margin-top:4px">'+(d.name||(has?"Informacoes parciais":"Sem identificacao"))+'</span></div><button class="btn btn-ghost btn-sm" style="width:auto;flex-shrink:0" onclick="App.openWineModal(\''+w.id+'\')">'+(has?"✏️ Editar":"🔍 Identificar")+'</button></div>'+body+'<div class="wine-card-photos"><p class="label" style="margin-bottom:14px">Fotos do Rotulo <span style="font-size:9px;color:var(--gold);opacity:0.7;margin-left:8px">· IA identifica ao fotografar a frente</span></p><div class="grid2" style="gap:12px">'+pf+pv+'</div></div>'+ai+'</div>';
+      return '<div class="wine-card"><div class="wine-card-header"><div style="flex:1"><div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px"><span class="tag">Vinho '+w.label+'</span>'+(d.owner?'<span style="background:rgba(107,26,42,0.3);border:1px solid rgba(201,168,76,0.3);color:var(--gold2);font-size:10px;font-family:Cinzel,serif;padding:3px 10px;border-radius:20px">👤 '+d.owner+'</span>':'')+'</div><span style="font-family:Cormorant Garamond,serif;font-size:18px;display:block;margin-top:4px">'+(d.name||(has?"Informacoes parciais":"Sem identificacao"))+'</span></div><button class="btn btn-ghost btn-sm" style="width:auto;flex-shrink:0" onclick="App.openWineModal(\''+w.id+'\')">'+(has?"✏️ Editar":"🔍 Identificar")+'</button></div>'+body+'<div class="wine-card-photos"><p class="label" style="margin-bottom:14px">Fotos do Rotulo <span style="font-size:9px;color:var(--gold);opacity:0.7;margin-left:8px">· IA identifica ao fotografar a frente</span></p><div class="grid2" style="gap:12px">'+pf+pv+'</div></div>'
+      // Inline owner selector
+      +'<div style="padding:14px 20px;border-bottom:1px solid var(--border)">'
+      +'<p class="label" style="margin-bottom:10px">Quem Trouxe</p>'
+      +'<select style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;color:var(--cream);font-family:Lato,sans-serif;font-size:15px;padding:11px 14px;width:100%;outline:none;-webkit-appearance:none;appearance:none;" onchange="App.saveWineOwner('+w.id+',this.value)">'
+      +'<option value="">— Selecione o participante —</option>'
+      +session.participants.map(function(p){
+        const alreadyTaken=session.wines.some(function(ow){return ow.id!==w.id&&ow.details&&ow.details.owner===p.name;});
+        if(alreadyTaken)return '';
+        return '<option value="'+p.name+'"'+(d.owner===p.name?' selected':'')+'>'+p.name+'</option>';
+      }).join('')
+      +'</select>'
+      +'</div>'
+      +ai+'</div>';
     }).join("");
     const sm=metaHtml(session);
     container.innerHTML=(sm?'<div class="card">'+sm+'</div>':'')+'<div class="card"><div class="section-label">Ranking Final</div>'+rankRows+'</div><div class="card"><div class="section-label">Votos por Participante</div><div style="overflow-x:auto"><table class="vote-table"><thead><tr><th>Participante</th>'+theadCols+'</tr></thead><tbody>'+tbodyRows+'</tbody><tfoot><tr class="total-row"><td>Total</td>'+totalRow+'</tr></tfoot></table></div></div>'+wineCards+'<div class="card" style="border-color:rgba(200,80,80,0.3);background:linear-gradient(135deg,rgba(50,10,10,0.9),rgba(30,5,5,0.95))"><div class="section-label" style="color:#e57373">Encerrar Sessao</div><p class="text-muted text-sm" style="line-height:1.7;margin-bottom:16px">Gera o relatorio completo com analise de cada vinho, padrao de votacoes e perfil de cada degustador.</p><button class="btn btn-gold" onclick="App.generateReport()" id="btn-report">📊 Gerar Relatorio &amp; Encerrar</button><button class="btn btn-ghost btn-sm" onclick="App.newSession()" style="margin-top:10px">+ Nova Sessao</button></div>';
@@ -679,6 +692,18 @@ const App={
     }
   },
   closeWineModal(){document.getElementById("wine-modal").classList.remove("open");editingWineId=null;},
+  saveWineOwner(wineId, owner){
+    const id=parseInt(wineId);
+    session.wines=session.wines.map(function(w){
+      if(w.id!==id)return w;
+      const d=Object.assign({},w.details||{},{owner:owner});
+      return Object.assign({},w,{details:d});
+    });
+    saveSession(session);
+    App.renderTabResults();
+    showToast(owner?"👤 "+owner+" vinculado!":"Vínculo removido");
+  },
+
   async saveWineDetails(){
     if(!editingWineId)return;
     const details={name:document.getElementById("wm-name").value.trim(),owner:document.getElementById("wm-owner").value,producer:document.getElementById("wm-producer").value.trim(),region:document.getElementById("wm-region").value.trim(),vintage:document.getElementById("wm-vintage").value.trim(),grape:document.getElementById("wm-grape").value.trim(),alcohol:document.getElementById("wm-alcohol").value.trim(),price:document.getElementById("wm-price").value.trim(),notes:document.getElementById("wm-notes").value.trim()};
