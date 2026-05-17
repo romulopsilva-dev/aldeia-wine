@@ -567,7 +567,7 @@ const App={
         body+='</div>';
       }
       const ai=w.aiInfo?'<div class="wine-card-ai"><div class="ai-info-box"><p class="label" style="margin-bottom:8px">📖 Informacoes do Vinho</p><p>'+w.aiInfo+'</p></div></div>':"";
-      return '<div class="wine-card"><div class="wine-card-header"><div><span class="tag">Vinho '+w.label+'</span><span style="font-family:Cormorant Garamond,serif;font-size:18px;margin-left:10px">'+(d.name||(has?"Informacoes parciais":"Sem identificacao"))+'</span></div><button class="btn btn-ghost btn-sm" style="width:auto" onclick="App.openWineModal(\''+w.id+'\')">'+(has?"✏️ Editar":"🔍 Identificar")+'</button></div>'+body+'<div class="wine-card-photos"><p class="label" style="margin-bottom:14px">Fotos do Rotulo <span style="font-size:9px;color:var(--gold);opacity:0.7;margin-left:8px">· IA identifica ao fotografar a frente</span></p><div class="grid2" style="gap:12px">'+pf+pv+'</div></div>'+ai+'</div>';
+      return '<div class="wine-card"><div class="wine-card-header"><div style="flex:1"><div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px"><span class="tag">Vinho '+w.label+'</span>'+(d.owner?'<span style="background:rgba(107,26,42,0.3);border:1px solid rgba(201,168,76,0.3);color:var(--gold2);font-size:10px;font-family:Cinzel,serif;padding:3px 10px;border-radius:20px">👤 '+d.owner+'</span>':'')+'</div><span style="font-family:Cormorant Garamond,serif;font-size:18px;display:block;margin-top:4px">'+(d.name||(has?"Informacoes parciais":"Sem identificacao"))+'</span></div><button class="btn btn-ghost btn-sm" style="width:auto;flex-shrink:0" onclick="App.openWineModal(\''+w.id+'\')">'+(has?"✏️ Editar":"🔍 Identificar")+'</button></div>'+body+'<div class="wine-card-photos"><p class="label" style="margin-bottom:14px">Fotos do Rotulo <span style="font-size:9px;color:var(--gold);opacity:0.7;margin-left:8px">· IA identifica ao fotografar a frente</span></p><div class="grid2" style="gap:12px">'+pf+pv+'</div></div>'+ai+'</div>';
     }).join("");
     const sm=metaHtml(session);
     container.innerHTML=(sm?'<div class="card">'+sm+'</div>':'')+'<div class="card"><div class="section-label">Ranking Final</div>'+rankRows+'</div><div class="card"><div class="section-label">Votos por Participante</div><div style="overflow-x:auto"><table class="vote-table"><thead><tr><th>Participante</th>'+theadCols+'</tr></thead><tbody>'+tbodyRows+'</tbody><tfoot><tr class="total-row"><td>Total</td>'+totalRow+'</tr></tfoot></table></div></div>'+wineCards+'<div class="card" style="border-color:rgba(200,80,80,0.3);background:linear-gradient(135deg,rgba(50,10,10,0.9),rgba(30,5,5,0.95))"><div class="section-label" style="color:#e57373">Encerrar Sessao</div><p class="text-muted text-sm" style="line-height:1.7;margin-bottom:16px">Gera o relatorio completo com analise de cada vinho, padrao de votacoes e perfil de cada degustador.</p><button class="btn btn-gold" onclick="App.generateReport()" id="btn-report">📊 Gerar Relatorio &amp; Encerrar</button><button class="btn btn-ghost btn-sm" onclick="App.newSession()" style="margin-top:10px">+ Nova Sessao</button></div>';
@@ -769,7 +769,53 @@ const App={
       if(photos.length)winePhotos+='<div style="margin-bottom:16px"><p style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--gold);opacity:.8;margin-bottom:8px">VINHO '+w.label+(w.details&&w.details.name?" — "+w.details.name:"")+'</p><div style="display:flex;gap:8px">'+photos.join("")+'</div></div>';
     });
     const sm=metaHtml(session);
-    document.getElementById("report-body").innerHTML='<div style="text-align:center;padding:20px 0 28px;border-bottom:1px solid var(--border);margin-bottom:24px"><p style="font-family:Cinzel,serif;font-size:10px;letter-spacing:5px;color:var(--gold);opacity:.7;margin-bottom:10px">CONFRARIA ✦ ALDEIA WINE GROUP</p><h1 style="font-family:Cinzel,serif;font-size:clamp(20px,5vw,32px);color:var(--gold2);letter-spacing:2px;margin-bottom:4px">Relatorio de Degustacao</h1>'+(sm?'<div class="report-meta" style="justify-content:center;margin-top:10px">'+sm+'</div>':"")+'</div><div class="report-section" style="margin-bottom:24px"><div style="display:flex;gap:12px;justify-content:center">'+podium+'</div></div>'+(winePhotos?'<div class="report-section"><p style="font-family:Cinzel,serif;font-size:11px;letter-spacing:3px;color:var(--gold);margin-bottom:14px">ROTULOS</p>'+winePhotos+'</div>':"")+'<div class="report-section"><p>'+formatted+'</p></div><div style="margin-top:28px;padding-top:20px;border-top:1px solid var(--border);text-align:center"><p style="font-family:Cormorant Garamond,serif;font-size:15px;color:var(--muted);font-style:italic">In vino veritas · Aldeia Wine Group · '+dateStr+'</p><button class="report-print-btn" onclick="App.printReport()">🖨️ Imprimir / Salvar como PDF</button></div>';
+    const medals2=["🥇","🥈","🥉"];
+    const rankingTable=ranked.map(function(w,idx){
+      const d=w.details||{};
+      return '<tr style="border-bottom:1px solid rgba(201,168,76,0.15)">'
+        +'<td style="padding:10px 8px;font-family:Cinzel,serif;font-size:18px;width:40px;text-align:center">'+(medals2[idx]||("#"+(idx+1)))+'</td>'
+        +'<td style="padding:10px 8px"><div style="font-family:Cormorant Garamond,serif;font-size:17px;font-weight:600">Vinho '+w.label+(d.name?' — <span style="font-weight:300">'+d.name+'</span>':'')+'</div>'+(d.owner?'<div style="font-size:11px;color:var(--muted);margin-top:2px">👤 '+d.owner+(d.producer?' · '+d.producer:'')+'</div>':'')+'</td>'
+        +'<td style="padding:10px 8px;text-align:right;font-family:Cinzel,serif;font-size:20px;font-weight:600;color:var(--gold2);white-space:nowrap">'+w.score+' pts</td>'
+        +'</tr>';
+    }).join("");
+    const wineOrder2=[].concat(session.wines).sort(function(a,b){return a.id-b.id;});
+    const sc2=session.scores||[];
+    const maxPts2=sc2[0]||20;
+    const voteHead=wineOrder2.map(function(w){return '<th style="padding:8px 6px;font-family:Cinzel,serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);border-bottom:1px solid var(--border)">V'+w.label+'</th>';}).join("");
+    const voteRows=session.participants.filter(function(p){return p.voted;}).map(function(p){
+      const cells=wineOrder2.map(function(w){
+        const v=p.votes.find(function(x){return x.wineId===w.id;});
+        const pts=v?v.score:"-";
+        return '<td style="padding:8px 6px;text-align:center;font-family:Cinzel,serif;font-size:12px;color:'+(v&&v.score===maxPts2?"#81c784":"var(--gold2)")+'">'+pts+'</td>';
+      }).join("");
+      return '<tr><td style="padding:8px 6px;font-family:Cormorant Garamond,serif;font-size:14px;white-space:nowrap">'+p.name+'</td>'+cells+'</tr>';
+    }).join("");
+    const voteTotals=wineOrder2.map(function(w){return '<td style="padding:8px 6px;text-align:center;font-family:Cinzel,serif;font-size:13px;font-weight:600;color:var(--gold2)">'+w.score+'</td>';}).join("");
+    document.getElementById("report-body").innerHTML=
+      '<div style="text-align:center;padding:20px 0 28px;border-bottom:1px solid var(--border);margin-bottom:24px">'
+        +'<p style="font-family:Cinzel,serif;font-size:10px;letter-spacing:5px;color:var(--gold);opacity:.7;margin-bottom:10px">CONFRARIA ✦ ALDEIA WINE GROUP</p>'
+        +'<h1 style="font-family:Cinzel,serif;font-size:clamp(20px,5vw,32px);color:var(--gold2);letter-spacing:2px;margin-bottom:4px">Relatorio de Degustacao</h1>'
+        +(sm?'<div style="display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:center;margin-top:10px">'+sm+'</div>':"")
+      +'</div>'
+      +'<div class="report-section" style="margin-bottom:24px"><div style="display:flex;gap:12px;justify-content:center">'+podium+'</div></div>'
+      +(winePhotos?'<div class="report-section"><p style="font-family:Cinzel,serif;font-size:11px;letter-spacing:3px;color:var(--gold);margin-bottom:14px;opacity:0.8">ROTULOS</p>'+winePhotos+'</div>':"")
+      +'<div class="report-section">'
+        +'<p style="font-family:Cinzel,serif;font-size:11px;letter-spacing:3px;color:var(--gold);margin-bottom:14px;opacity:0.8">RANKING COMPLETO</p>'
+        +'<table style="width:100%;border-collapse:collapse">'+rankingTable+'</table>'
+      +'</div>'
+      +'<div class="report-section">'
+        +'<p style="font-family:Cinzel,serif;font-size:11px;letter-spacing:3px;color:var(--gold);margin-bottom:14px;opacity:0.8">PAINEL DE VOTACAO</p>'
+        +'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">'
+          +'<thead><tr><th style="padding:8px 6px;font-family:Cinzel,serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);border-bottom:1px solid var(--border);text-align:left">Participante</th>'+voteHead+'</tr></thead>'
+          +'<tbody>'+voteRows+'</tbody>'
+          +'<tfoot><tr><td style="padding:8px 6px;font-family:Cinzel,serif;font-size:11px;color:var(--gold2);font-weight:600;border-top:1px solid var(--border)">Total</td>'+voteTotals+'</tr></tfoot>'
+        +'</table></div>'
+      +'</div>'
+      +'<div class="report-section"><p>'+formatted+'</p></div>'
+      +'<div style="margin-top:28px;padding-top:20px;border-top:1px solid var(--border);text-align:center">'
+        +'<p style="font-family:Cormorant Garamond,serif;font-size:15px;color:var(--muted);font-style:italic">In vino veritas · Aldeia Wine Group · '+dateStr+'</p>'
+        +'<button class="report-print-btn" onclick="App.printReport()">🖨️ Imprimir / Salvar como PDF</button>'
+      +'</div>';
     document.getElementById("report-overlay").style.display="block";
     document.getElementById("report-overlay").scrollTop=0;
   },
