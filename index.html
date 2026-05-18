@@ -588,7 +588,7 @@ const App={
 
   // PHOTO
   triggerPhoto(wineId,side,runAI){
-    const inp=document.createElement("input");inp.type="file";inp.accept="image/*";inp.capture="environment";inp.style.display="none";document.body.appendChild(inp);
+    const inp=document.createElement("input");inp.type="file";inp.accept="image/*";inp.style.display="none";document.body.appendChild(inp);
     inp.onchange=async function(e){
       const file=e.target.files[0];if(!file)return;
       document.body.removeChild(inp);
